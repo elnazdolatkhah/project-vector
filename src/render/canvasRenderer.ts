@@ -1,17 +1,32 @@
 import { PHYSICS_CONFIG } from '../config.js';
 import { fitWorld } from './viewport.js';
+import type { GameState, FuturePreview, Ball, Block, Launcher, Vector2D } from '../types.js';
+
+export interface RenderOptions {
+  state: GameState;
+  liveBalls?: Ball[] | null;
+  future?: FuturePreview | null;
+  aimAngle?: number | null;
+}
 
 export class CanvasRenderer {
-  constructor(canvas) {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
+    const context = canvas.getContext('2d');
+    if (!context) {
+      throw new Error('Failed to acquire 2D canvas context');
+    }
+    this.ctx = context;
   }
 
-  clear() {
+  clear(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  render({ state, liveBalls = null, future = null, aimAngle = null }) {
+  render({ state, liveBalls = null, future = null, aimAngle = null }: RenderOptions): void {
     const ctx = this.ctx;
     const fit = fitWorld(this.canvas.width, this.canvas.height);
     ctx.save();
@@ -24,22 +39,22 @@ export class CanvasRenderer {
     ctx.fillStyle = '#05070a';
     ctx.fillRect(0, 0, PHYSICS_CONFIG.canvasWidth, PHYSICS_CONFIG.canvasHeight);
 
-    this.#drawBoundary(ctx);
-    this.#drawBlocks(ctx, state.blocks, future);
-    if (future?.trajectories) this.#drawTrajectories(ctx, future.trajectories);
-    if (aimAngle != null) this.#drawAim(ctx, state.launcher, aimAngle);
-    this.#drawLauncher(ctx, state.launcher, state.balls.available);
-    if (liveBalls) this.#drawBalls(ctx, liveBalls);
+    this.drawBoundary(ctx);
+    this.drawBlocks(ctx, state.blocks, future);
+    if (future?.trajectories) this.drawTrajectories(ctx, future.trajectories);
+    if (aimAngle != null) this.drawAim(ctx, state.launcher, aimAngle);
+    this.drawLauncher(ctx, state.launcher, state.balls.available);
+    if (liveBalls) this.drawBalls(ctx, liveBalls);
     ctx.restore();
   }
 
-  #drawBoundary(ctx) {
+  private drawBoundary(ctx: CanvasRenderingContext2D): void {
     ctx.strokeStyle = 'rgba(95,210,255,.28)';
     ctx.lineWidth = 4;
     ctx.strokeRect(8, 8, PHYSICS_CONFIG.canvasWidth - 16, PHYSICS_CONFIG.canvasHeight - 16);
   }
 
-  #drawBlocks(ctx, blocks, future) {
+  private drawBlocks(ctx: CanvasRenderingContext2D, blocks: Block[], future: FuturePreview | null): void {
     const finalById = future ? new Map(future.result.finalBlocks.map((b) => [b.id, b])) : null;
     for (const block of blocks) {
       if (!block.active) continue;
@@ -59,7 +74,7 @@ export class CanvasRenderer {
     }
   }
 
-  #drawTrajectories(ctx, trajectories) {
+  private drawTrajectories(ctx: CanvasRenderingContext2D, trajectories: Record<string, Vector2D[]>): void {
     const ids = Object.keys(trajectories);
     ids.forEach((id, index) => {
       const points = trajectories[id];
@@ -73,7 +88,7 @@ export class CanvasRenderer {
     });
   }
 
-  #drawAim(ctx, launcher, angleDeg) {
+  private drawAim(ctx: CanvasRenderingContext2D, launcher: Launcher, angleDeg: number): void {
     const theta = (angleDeg * Math.PI) / 180;
     ctx.strokeStyle = 'rgba(255,255,255,.72)';
     ctx.setLineDash([10, 10]);
@@ -85,7 +100,7 @@ export class CanvasRenderer {
     ctx.setLineDash([]);
   }
 
-  #drawLauncher(ctx, launcher, ballCount) {
+  private drawLauncher(ctx: CanvasRenderingContext2D, launcher: Launcher, ballCount: number): void {
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.arc(launcher.x, launcher.y, 9, 0, Math.PI * 2);
@@ -95,7 +110,7 @@ export class CanvasRenderer {
     ctx.fillText(`×${ballCount}`, launcher.x + 18, launcher.y + 7);
   }
 
-  #drawBalls(ctx, balls) {
+  private drawBalls(ctx: CanvasRenderingContext2D, balls: Ball[]): void {
     ctx.fillStyle = '#fff';
     for (const ball of balls) {
       if (!ball.active) continue;

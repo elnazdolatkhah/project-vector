@@ -1,34 +1,45 @@
-# PROJECT VECTOR — Google AI Studio Migration Package v1
+# Project Vector (React)
 
-This package converts the single-file prototype into a modular, testable web project suitable for continued work in Google AI Studio or any normal web IDE.
+A deterministic mobile predictive-strategy brick breaker puzzle game built with React, TypeScript, Vite, and Tailwind CSS.
 
-## Run locally
+## Overview
+
+Project Vector's differentiator is **pre-shot consequence prediction**. While aiming, players inspect the exact future trajectories, projected block damage, and robustness rating before launching.
+
+- **Mental Model**: Drag on the field to explore a future; release to commit and make it real.
+- **Authoritative Physics Contract**: Gameplay, pre-shot prediction, solver, and tests all call the same `simulateTurn()` contract from `src/physics/simulation.js`.
+
+## Tech Stack
+
+- **Framework**: React 19 + TypeScript
+- **Bundler**: Vite 7
+- **Styling**: Tailwind CSS v4
+- **Testing**: Node.js built-in test runner (`node --test tests/*.test.js`)
+
+## Commands
+
 ```bash
-npm install
-npm test
+# Start development server
 npm run dev
+
+# Run test suite
+npm test
+
+# Typecheck codebase
+npm run lint
+
+# Production build
+npm run build
 ```
 
-Then open the dev-server URL on desktop or phone.
+## Architecture
 
-## Start in AI Studio
-Read and paste/submit `AI_STUDIO_FIRST_PROMPT.md` as the first task after importing the project.
-
-## Why this package exists
-PROJECT VECTOR's core promise is prediction fidelity: the future shown before a shot must be the same future produced after commitment. The architecture therefore keeps physics, prediction, and solver behind one authoritative `simulateTurn()` contract and keeps visual iteration outside that contract.
-
-## Current package contents
-- modular physics/domain/future/solver/UI code;
-- five migration level fixtures;
-- deterministic regression tests;
-- Bricks Breaker Quest structural case-study brief;
-- locked/editable system rules;
-- acceptance checklist;
-- canonical project specs;
-- legacy prototypes for traceability.
-
-## Canonical hierarchy
-1. Explicit accepted decisions made after this package.
-2. `docs/PROJECT_VECTOR_MASTER_SPEC_v1.0.md`.
-3. Modular source in `src/` where it faithfully implements the Master Spec.
-4. `legacy/` only for historical reference.
+- `src/App.tsx`: Main React application component managing game lifecycle, pointer gestures, and HUD.
+- `src/render/canvasRenderer.ts`: Canvas 2D renderer for viewport fitting, board boundary, blocks, aim line, predictive trajectories, and live ball animation.
+- `src/render/viewport.js`: Canonical aspect-ratio fitting (720x1280) and coordinate transformation.
+- `src/future/futureEngine.js`: Pre-shot consequence preview and multi-angle robustness calculation.
+- `src/physics/simulation.js`: Authoritative continuous collision simulation (`simulateTurn`).
+- `src/physics/collision.js`: Continuous swept circle-vs-AABB collision with corner normal resolution.
+- `src/physics/vector.js`: Vector math and reflection utilities.
+- `src/domain/gameState.js`: State validation, canonical serialization, and deterministic hashing.
+- `src/levels/levels.js`: Structured level fixtures (L01–L05).
