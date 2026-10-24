@@ -11,10 +11,10 @@ export const PHYSICS_CONFIG = Object.freeze({
   maxCollisionsPerStep: 8,
 });
 
-// Canonical Master Spec v1.0. Do not widen without an explicit design decision.
+// Canonical player aim domain = full upward hemisphere, 1°–179°.
 export const INPUT_CONFIG = Object.freeze({
   angleMin: 1,
-  angleMax: 89,
+  angleMax: 179,
   angleStep: 0.1,
 });
 

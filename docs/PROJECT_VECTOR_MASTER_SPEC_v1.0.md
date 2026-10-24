@@ -51,16 +51,17 @@ Reference world:
 - +X: right
 - +Y: down
 
-Canonical launch angle range for this baseline:
-- 1°–89°
+Canonical player aim domain = full upward hemisphere, 1°–179°:
+- 1°–179°
 - 0° points right
 - 90° points up
+- 180° points left
 
 Velocity:
 - `vx = speed * cos(theta)`
 - `vy = -speed * sin(theta)`
 
-A later prototype widened the range to 1°–179° without an accepted decision. This migration restores 1°–89°. Any widening requires a new decision record.
+The earlier 1°–89° restriction is superseded by this intentional design correction to allow exploring the complete upward hemisphere.
 
 ## 5. Physics reference
 

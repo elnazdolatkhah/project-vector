@@ -5,8 +5,8 @@ The previous prototype accumulated concept, physics, solver, future preview, ren
 
 This migration separates those responsibilities and introduces a literal `simulateTurn()` public contract.
 
-## Important correction: angle domain
-The Master Spec defines 1°–89°. A later prototype expanded this to 1°–179° without a formally accepted design decision. The migration baseline restores 1°–89° and flags the wider upward hemisphere as a future design decision rather than silently treating it as canonical.
+## Canonical player aim domain: full upward hemisphere (1°–179°)
+The canonical player aim domain is officially established as the full upward hemisphere (1°–179°), allowing direct mobile exploration of both rightward (1°–89°) and leftward (91°–179°) trajectories as well as vertical shots (90°). The earlier 1°–89° restriction is formally superseded.
 
 ## Case-study status
 The dense level arrangements in `src/levels/levels.js` are migration fixtures inspired by the mobile screen-density lesson from Bricks Breaker Quest. They are not claimed as final level design and should be replaced/validated later.

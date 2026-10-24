@@ -2,12 +2,10 @@
 
 :root {
   color-scheme: dark;
-  --bg: #020407;
-  --cyan: #51ded8;
-  --blue: #5fd2ff;
-  --amber: #ffc04a;
-  --text: #eaf7ff;
-  --muted: #77909f;
+  --bg: #05080e;
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 * {
@@ -23,6 +21,7 @@ html, body, #root {
   background: #000;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
+  user-select: none;
 }
 
 body {
@@ -31,6 +30,7 @@ body {
   align-items: center;
 }
 
+/* Portrait mobile phone viewport container */
 .phone {
   position: relative;
   width: min(100vw, 430px);
@@ -47,110 +47,160 @@ canvas {
   touch-action: none;
 }
 
+/* Shallow, restrained top HUD */
 .top {
   position: absolute;
-  top: max(8px, env(safe-area-inset-top));
-  left: 10px;
-  right: 10px;
+  top: max(6px, env(safe-area-inset-top));
+  left: 14px;
+  right: 14px;
+  height: 38px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
 }
 
 .stage {
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-align: center;
   flex: 1;
-  text-shadow: 0 2px 7px #000;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  transition: opacity 0.15s ease;
 }
 
 .top button, .bottom button {
   pointer-events: auto;
-  border: 1px solid rgba(95, 210, 255, 0.28);
-  background: rgba(2, 7, 11, 0.72);
-  color: var(--text);
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #cbd5e1;
   border-radius: 999px;
-  min-width: 40px;
-  height: 40px;
-  font-weight: 800;
+  min-width: 34px;
+  height: 34px;
+  font-weight: 700;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease, color 0.15s ease;
   user-select: none;
 }
 
-.top button:active, .bottom button:active {
-  transform: scale(0.94);
-  background: rgba(15, 30, 45, 0.85);
+.top button:hover, .bottom button:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
 }
 
+.top button:active, .bottom button:active {
+  transform: scale(0.92);
+  background: rgba(51, 65, 85, 0.9);
+}
+
+/* Onboarding hint: minimal, quiet, fades out permanently after first tap */
+.gesture {
+  position: absolute;
+  left: 50%;
+  top: 74%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  z-index: 10;
+  width: 90%;
+  max-width: 300px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -46%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Restrained, non-dashboard future summary chip */
 .future {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: max(66px, calc(env(safe-area-inset-bottom) + 58px));
+  bottom: max(48px, calc(env(safe-area-inset-bottom) + 44px));
   max-width: calc(100% - 28px);
-  padding: 7px 12px;
+  padding: 3px 11px;
   border-radius: 999px;
-  background: rgba(2, 7, 11, 0.72);
-  border: 1px solid rgba(81, 222, 216, 0.26);
-  font-size: 10px;
-  font-weight: 800;
+  background: rgba(8, 12, 19, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10.5px;
+  font-weight: 600;
   letter-spacing: 0.03em;
+  color: #64748b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
+  transition: opacity 0.12s ease;
 }
 
+/* Precise angle indicator near aiming region */
 .angle {
   position: absolute;
-  right: 14px;
-  bottom: max(112px, calc(env(safe-area-inset-bottom) + 104px));
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--cyan);
-  text-shadow: 0 2px 8px #000;
+  right: 16px;
+  bottom: max(48px, calc(env(safe-area-inset-bottom) + 44px));
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #64748b;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  transition: color 0.12s ease;
 }
 
+.angle-active {
+  color: #38bdf8;
+}
+
+/* Shallow, unobtrusive bottom HUD */
 .bottom {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  left: 14px;
+  right: 14px;
+  bottom: max(6px, env(safe-area-inset-bottom));
+  height: 36px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
 }
 
-.gesture {
-  position: absolute;
-  left: 50%;
-  top: 62%;
-  transform: translate(-50%, -50%);
-  font-size: 11px;
-  color: var(--muted);
-  text-align: center;
-  pointer-events: none;
-  line-height: 1.5;
-  letter-spacing: 0.04em;
-  z-index: 5;
-  transition: opacity 0.2s ease;
+.turn-indicator {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #475569;
+  text-transform: uppercase;
+  transition: color 0.15s ease;
 }
 
 @media (min-width: 431px) {
   .phone {
     border-radius: 28px;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
   }
 }

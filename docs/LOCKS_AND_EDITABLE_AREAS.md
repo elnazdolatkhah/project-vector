@@ -9,7 +9,7 @@
 - Bottom boundary is EXIT, not reflect.
 - No hidden randomness in core physics.
 - State carries independent `schemaVersion`, `gameVersion`, and `physicsVersion`.
-- Canonical input range from Master Spec v1.0 is 1°–89° until explicitly superseded.
+- Canonical player aim domain = full upward hemisphere, 1°–179° (superseding earlier 1°–89° restriction).
 - The player must be able to inspect consequences before launch. Prediction is the product's core differentiator.
 
 ## EDITABLE — expected iteration surface
