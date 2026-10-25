@@ -18,9 +18,23 @@ export const INPUT_CONFIG = Object.freeze({
   angleStep: 0.1,
 });
 
+export const PROGRESSION_CONFIG = Object.freeze({
+  rowStep: 68,
+  defaultRowOriginY: 220,
+  topRowY: 220,
+  dangerLineY: 1060,
+  columnCount: 8,
+  columnSpacing: 82,
+  startX: 34,
+  blockWidth: 70,
+  blockHeight: 56,
+  transitionDurationMs: 220,
+});
+
 export const VERSION = Object.freeze({
-  schemaVersion: '1.0',
+  schemaVersion: '1.1',
   gameVersion: '0.1',
   physicsVersion: '1.0',
   migrationVersion: 'AI-STUDIO-v1',
 });
+

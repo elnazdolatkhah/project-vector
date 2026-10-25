@@ -10,6 +10,7 @@ import {
   type BlockHitEffect,
   type BlockDestructionEffect,
   type TrajectoryTransition,
+  type BoardTransition,
 } from './render/canvasRenderer';
 import { viewToWorld } from './render/viewport.js';
 import type { GameState, FuturePreview, Block } from './types.js';
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
   const hitEffectsRef = useRef<Map<string, BlockHitEffect>>(new Map());
   const destructionEffectsRef = useRef<BlockDestructionEffect[]>([]);
   const trajectoryTransitionRef = useRef<TrajectoryTransition | null>(null);
+  const boardTransitionRef = useRef<BoardTransition | null>(null);
 
   // Core state
   const [levelIndex, setLevelIndex] = useState(0);
@@ -46,6 +48,7 @@ export const App: React.FC = () => {
   );
   const [isAiming, setIsAiming] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(() => {
     try {
       return sessionStorage.getItem('project_vector_onboarded') === 'true';
@@ -60,6 +63,9 @@ export const App: React.FC = () => {
 
   const runningRef = useRef(isRunning);
   runningRef.current = isRunning;
+
+  const transitioningRef = useRef(isTransitioning);
+  transitioningRef.current = isTransitioning;
 
   const aimingRef = useRef(isAiming);
   aimingRef.current = isAiming;
@@ -83,15 +89,18 @@ export const App: React.FC = () => {
       }
     }
 
+    const suppressAimAndFuture = runningRef.current || transitioningRef.current || Boolean(stateRef.current.isGameOver);
+
     rendererRef.current.render({
       state: stateRef.current,
-      future: runningRef.current ? null : futureRef.current,
-      aimAngle: runningRef.current ? null : angleRef.current,
+      future: suppressAimAndFuture ? null : futureRef.current,
+      aimAngle: suppressAimAndFuture ? null : angleRef.current,
       launcherRecoil: launcherRecoilRef.current,
       launcherSettle: launcherSettleRef.current,
       hitEffects: hitEffectsRef.current,
       destructionEffects: destructionEffectsRef.current,
       trajectoryTransition: trajectoryTransitionRef.current,
+      boardTransition: boardTransitionRef.current,
       readyFadeAlpha,
       now,
     });
@@ -107,6 +116,10 @@ export const App: React.FC = () => {
   // Update future summary DOM text directly
   const updateFutureDOM = useCallback((p: FuturePreview | null, r: number, calculating = false) => {
     if (!futureTextRef.current) return;
+    if (stateRef.current.isGameOver) {
+      futureTextRef.current.innerHTML = '<span class="text-rose-400 font-semibold tracking-wider">GAME OVER · DANGER REACHED</span>';
+      return;
+    }
     if (calculating || !p) {
       futureTextRef.current.innerHTML = '<span class="opacity-40">Calculating…</span>';
     } else {
@@ -116,7 +129,7 @@ export const App: React.FC = () => {
 
   // Authoritative future calculation (decoupled from direct finger tracking)
   const computeAuthoritativeFuture = useCallback((stateToPreview: GameState, targetAngle: number) => {
-    if (runningRef.current) return;
+    if (runningRef.current || transitioningRef.current || stateToPreview.isGameOver) return;
     try {
       const prevFuture = futureRef.current;
       const p = previewFuture(stateToPreview, targetAngle, { record: true }) as FuturePreview;
@@ -184,6 +197,8 @@ export const App: React.FC = () => {
     stateRef.current = newState;
     setIsRunning(false);
     runningRef.current = false;
+    setIsTransitioning(false);
+    transitioningRef.current = false;
     setIsAiming(false);
     aimingRef.current = false;
     futureRef.current = null;
@@ -192,6 +207,7 @@ export const App: React.FC = () => {
     launcherRecoilRef.current = null;
     launcherSettleRef.current = null;
     trajectoryTransitionRef.current = null;
+    boardTransitionRef.current = null;
     readyFadeStartRef.current = performance.now();
 
     if (angleTextRef.current) {
@@ -388,24 +404,56 @@ export const App: React.FC = () => {
       if (!sim.finished || !allExitEffectsDone || !allReturningDone) {
         animFrameRef.current = requestAnimationFrame(frame);
       } else {
-        // Volley End State: Authoritative turn completion + 95ms visual settle transition
+        // Volley End State: Authoritative turn completion
         const result = sim.result();
+        const prevBlocks = stateRef.current.blocks;
         const nextState = applyTurnResult(stateRef.current, result);
         setGameState(nextState);
         stateRef.current = nextState;
 
-        // Player input becomes active immediately with 0ms dead pause
         setIsRunning(false);
         runningRef.current = false;
         hitEffectsRef.current.clear();
         destructionEffectsRef.current = [];
         launcherRecoilRef.current = null;
 
-        // Visual settle transition (95ms settle, ghost preview fades in concurrently over 95ms)
-        launcherSettleRef.current = { time: performance.now(), duration: 95 };
-        readyFadeStartRef.current = performance.now();
+        // Presentation board descent transition (target ~180–260ms, calibrated to 220ms)
+        const transStart = performance.now();
+        const transDuration = 220;
+        boardTransitionRef.current = {
+          fromBlocks: prevBlocks,
+          toBlocks: nextState.blocks,
+          startTime: transStart,
+          duration: transDuration,
+        };
+        launcherSettleRef.current = { time: transStart, duration: transDuration };
+        setIsTransitioning(true);
+        transitioningRef.current = true;
 
-        scheduleFutureRecomputation(angleRef.current, true);
+        function transitionLoop(transNow: number) {
+          const elapsed = transNow - transStart;
+          if (elapsed < transDuration) {
+            renderCurrent();
+            animFrameRef.current = requestAnimationFrame(transitionLoop);
+          } else {
+            // Presentation descent complete
+            boardTransitionRef.current = null;
+            launcherSettleRef.current = null;
+            setIsTransitioning(false);
+            transitioningRef.current = false;
+
+            if (!nextState.isGameOver) {
+              readyFadeStartRef.current = performance.now();
+              scheduleFutureRecomputation(angleRef.current, true);
+            } else {
+              futureRef.current = null;
+              updateFutureDOM(null, 0, false);
+              renderCurrent();
+            }
+          }
+        }
+
+        animFrameRef.current = requestAnimationFrame(transitionLoop);
       }
     }
 
@@ -414,7 +462,7 @@ export const App: React.FC = () => {
 
   // Direct, immediate pointer interaction handlers (0 latency)
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (runningRef.current) return;
+    if (runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
 
     if (!hasInteracted) {
       setHasInteracted(true);
@@ -447,7 +495,7 @@ export const App: React.FC = () => {
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current) return;
+    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
 
     const newAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = newAngle;
@@ -466,7 +514,7 @@ export const App: React.FC = () => {
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current) return;
+    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
 
     const finalAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = finalAngle;
@@ -597,7 +645,7 @@ export const App: React.FC = () => {
           ↻
         </button>
         <div className="turn-indicator">
-          TURN {gameState.turn} · SCORE {gameState.score}
+          TURN {gameState.turn} · SCORE {gameState.score}{gameState.isGameOver ? ' · FAILED' : ''}
         </div>
       </footer>
     </main>

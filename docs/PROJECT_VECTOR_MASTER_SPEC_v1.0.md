@@ -99,10 +99,10 @@ Collision requirements:
 
 ## 6. State model
 
-GameState must carry enough information to reproduce the same simulation result.
+GameState must carry enough information to reproduce the same simulation result and turn-to-turn progression.
 
 Required version fields:
-- schemaVersion
+- schemaVersion (v1.1)
 - gameVersion
 - physicsVersion
 
@@ -111,16 +111,46 @@ Game state includes:
 - turn
 - score
 - available ball count
-- launcher
-- block state
+- launcher (x, y)
+- block state (id, x, y, width, height, value, active)
+- seed (deterministic progression seed)
+- nextRowIndex (deterministic row step counter)
+- isGameOver (authoritative terminal status)
 
-Serialization and deserialization must preserve the next-turn result.
+Serialization and deserialization must preserve the next-turn result and future row generation.
+
+## 6.1 Board progression & row descent
+
+Accepted core-loop rule:
+**Every completed volley advances the board by one row and produces a deterministic new top row.**
+
+Authoritative turn pipeline:
+`applyTurnResult(gameState, simulationResult) -> nextGameState`
+
+Progression rules:
+1. Volley shot consequences resolve; destroyed blocks are filtered out (destroyed blocks do not descend).
+2. The first bottom exit determines next-turn launcher X.
+3. All surviving active blocks descend by exactly one row-step (`ROW_STEP = 68`).
+4. A deterministic new row of blocks is generated at `TOP_ROW_Y = 220` with stable IDs (`gen_r{nextRowIndex}_c{col}`) and deterministic HP.
+5. Danger line evaluation: If any active block reaches or crosses the danger line (`block.y + block.height >= DANGER_LINE_Y = 1060`), `isGameOver` becomes true.
+6. The next turn begins from that resulting board state.
+
+Presentation rule:
+- Authoritative state updates immediately.
+- Presentation interpolates visual block descent and new row entrance over a brief ~220ms transition.
+- Aiming and prediction are hidden during the committed volley and the ~220ms board transition.
 
 ## 7. Solver contract
 
 The solver does not own physics.
 
-It generates candidate angles and calls `simulateTurn()` for each candidate on an isolated copy of GameState.
+It generates candidate angles and calls `simulateTurn()` for each candidate on an isolated copy of GameState, evaluating candidates against the canonical post-turn transition `applyTurnResult()`.
+
+Candidate results expose:
+- `score` and `stats`
+- `nextLauncher`
+- `nextGameState`
+- `isGameOver`
 
 Initial objectives may include:
 - damage
@@ -128,22 +158,30 @@ Initial objectives may include:
 
 Internal solver metrics may include robustness and solution density.
 
-Solver metadata and tie-breaking must remain deterministic.
+Solver metadata and tie-breaking must remain deterministic. Replay of the best angle produces the exact same `nextGameState` as live gameplay.
 
 Tooling such as solver sweeps and angle laboratory charts must not become the default player-facing UI.
 
 ## 8. Future Engine
 
-The Future Engine is a player-facing interpretation of the same authoritative simulation.
+The Future Engine is a player-facing interpretation of the authoritative simulation and progression pipeline.
 
-It may expose:
+Accepted future rule:
+**The full authoritative future of a shot includes the next board state, not only immediate collision results.**
+
+For any candidate angle, Future Preview derives the full authoritative post-turn state:
+current state → simulate volley → first-return launcher → surviving blocks descend → deterministic new row enters → failure check → `nextGameState`.
+
+It exposes:
 - predicted trajectory
 - projected hit blocks
 - projected destroyed blocks
 - damage
 - destroyed count
 - robustness/stability
-- later, future-state potential
+- `nextLauncher`
+- `nextGameState`
+- `isGameOver`
 
 Prediction must be spatially integrated into the board wherever possible.
 

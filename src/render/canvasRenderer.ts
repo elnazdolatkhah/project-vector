@@ -1,4 +1,4 @@
-import { PHYSICS_CONFIG } from '../config.js';
+import { PHYSICS_CONFIG, PROGRESSION_CONFIG } from '../config.js';
 import { fitWorld } from './viewport.js';
 import type { GameState, FuturePreview, Block, Launcher, Vector2D } from '../types.js';
 
@@ -31,6 +31,13 @@ export interface TrajectoryTransition {
   duration: number;
 }
 
+export interface BoardTransition {
+  fromBlocks: Block[];
+  toBlocks: Block[];
+  startTime: number;
+  duration: number;
+}
+
 export interface RenderOptions {
   state: GameState;
   liveBalls?: VisualBall[] | null;
@@ -41,6 +48,7 @@ export interface RenderOptions {
   hitEffects?: Map<string, BlockHitEffect> | null;
   destructionEffects?: BlockDestructionEffect[] | null;
   trajectoryTransition?: TrajectoryTransition | null;
+  boardTransition?: BoardTransition | null;
   returnPoint?: { x: number; y: number } | null;
   readyFadeAlpha?: number;
   now?: number;
@@ -73,6 +81,7 @@ export class CanvasRenderer {
     hitEffects = null,
     destructionEffects = null,
     trajectoryTransition = null,
+    boardTransition = null,
     returnPoint = null,
     readyFadeAlpha = 1.0,
     now = performance.now(),
@@ -98,18 +107,22 @@ export class CanvasRenderer {
     // Clean boundary perimeter
     this.drawBoundary(ctx);
 
+    // Danger line threshold boundary
+    this.drawDangerLine(ctx, Boolean(state.isGameOver));
+
     // Hierarchy 3: Quiet, restrained ghost-ball trajectory preview behind blocks
-    if (future?.trajectories) {
+    // Suppressed during committed volley, board transition, or game-over
+    if (future?.trajectories && !state.isGameOver && !boardTransition) {
       this.drawTrajectoryPreview(ctx, future.trajectories, trajectoryTransition, readyFadeAlpha, now);
     }
 
     // Direct aim guide from launcher
-    if (aimAngle != null) {
+    if (aimAngle != null && !state.isGameOver && !boardTransition) {
       this.drawAim(ctx, state.launcher, aimAngle, readyFadeAlpha);
     }
 
-    // Hierarchy 2: Blocks and their state changes with capped hit feedback
-    this.drawBlocks(ctx, state.blocks, future, hitEffects, now);
+    // Hierarchy 2: Blocks and their state changes with capped hit feedback & descent interpolation
+    this.drawBlocks(ctx, state.blocks, future, hitEffects, boardTransition, now);
 
     // Destruction exit animations (restrained micro-scale and fade)
     if (destructionEffects && destructionEffects.length > 0) {
@@ -127,6 +140,11 @@ export class CanvasRenderer {
     // Hierarchy 1: Live moving balls (primary kinetic object with high visual contrast)
     if (liveBalls && liveBalls.length > 0) {
       this.drawBalls(ctx, liveBalls);
+    }
+
+    // Failure presentation if terminal danger reached
+    if (state.isGameOver) {
+      this.drawFailureOverlay(ctx);
     }
 
     ctx.restore();
@@ -163,23 +181,102 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  private drawDangerLine(ctx: CanvasRenderingContext2D, isGameOver = false): void {
+    ctx.save();
+    const y = PROGRESSION_CONFIG.dangerLineY;
+    ctx.strokeStyle = isGameOver ? 'rgba(239, 68, 68, 0.85)' : 'rgba(239, 68, 68, 0.25)';
+    ctx.lineWidth = isGameOver ? 2.5 : 1.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(8, y);
+    ctx.lineTo(PHYSICS_CONFIG.canvasWidth - 8, y);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = isGameOver ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.38)';
+    ctx.font = '700 11px Inter, system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('DANGER LINE', PHYSICS_CONFIG.canvasWidth - 14, y - 4);
+
+    ctx.restore();
+  }
+
+  private drawFailureOverlay(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+    const y = PROGRESSION_CONFIG.dangerLineY;
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+    ctx.fillRect(8, y, PHYSICS_CONFIG.canvasWidth - 16, PHYSICS_CONFIG.canvasHeight - y - 16);
+
+    const badgeW = 300;
+    const badgeH = 54;
+    const badgeX = (PHYSICS_CONFIG.canvasWidth - badgeW) / 2;
+    const badgeY = y - 76;
+
+    ctx.fillStyle = 'rgba(15, 17, 26, 0.94)';
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+    ctx.lineWidth = 1.5;
+    this.fillAndStrokeRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 8);
+
+    ctx.fillStyle = '#f87171';
+    ctx.font = '800 14px Inter, system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DANGER LINE BREACHED', PHYSICS_CONFIG.canvasWidth / 2, badgeY + 19);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 11px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillText('PRESS ↻ TO RESTART LEVEL', PHYSICS_CONFIG.canvasWidth / 2, badgeY + 36);
+
+    ctx.restore();
+  }
+
   private drawBlocks(
     ctx: CanvasRenderingContext2D,
     blocks: Block[],
     future: FuturePreview | null,
     hitEffects: Map<string, BlockHitEffect> | null,
+    boardTransition: BoardTransition | null,
     now: number
   ): void {
-    const finalById = future ? new Map(future.result.finalBlocks.map((b) => [b.id, b])) : null;
+    const fromMap = boardTransition ? new Map(boardTransition.fromBlocks.map((b) => [b.id, b])) : null;
+    let transitionProgress = 1.0;
+    let isTransitioning = false;
+
+    if (boardTransition && now - boardTransition.startTime < boardTransition.duration) {
+      isTransitioning = true;
+      transitionProgress = Math.min(1.0, (now - boardTransition.startTime) / boardTransition.duration);
+    }
+
+    const ease = 1 - Math.pow(1 - transitionProgress, 3);
+    const finalById = (future && !isTransitioning) ? new Map(future.result.finalBlocks.map((b) => [b.id, b])) : null;
 
     for (const block of blocks) {
       if (!block.active) continue;
+
+      let renderX = block.x;
+      let renderY = block.y;
+      let blockOpacity = 1.0;
+
+      if (isTransitioning) {
+        const from = fromMap?.get(block.id);
+        if (from) {
+          renderY = from.y + (block.y - from.y) * ease;
+        } else {
+          const startY = block.y - PROGRESSION_CONFIG.rowStep;
+          renderY = startY + (block.y - startY) * ease;
+          blockOpacity = ease;
+        }
+      }
 
       const after = finalById?.get(block.id);
       const projectedDamage = after ? Math.max(0, block.value - (after.active ? after.value : 0)) : 0;
       const projectedDestroyed = after ? !after.active : false;
 
       ctx.save();
+      if (blockOpacity < 1.0) {
+        ctx.globalAlpha = blockOpacity;
+      }
 
       // Capped hit feedback: damped flash and subtle scale (never washes out numbers)
       let scale = 1.0;
@@ -195,8 +292,8 @@ export class CanvasRenderer {
         }
       }
 
-      const centerX = block.x + block.width / 2;
-      const centerY = block.y + block.height / 2;
+      const centerX = renderX + block.width / 2;
+      const centerY = renderY + block.height / 2;
       if (scale !== 1.0) {
         ctx.translate(centerX, centerY);
         ctx.scale(scale, scale);
@@ -210,7 +307,7 @@ export class CanvasRenderer {
         ctx.fillStyle = flash > 0 ? `rgba(251, 191, 36, ${0.18 + flash})` : 'rgba(245, 158, 11, 0.18)';
         ctx.strokeStyle = flash > 0 ? '#fef08a' : '#f59e0b';
         ctx.lineWidth = 2;
-        this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
+        this.fillAndStrokeRoundedRect(ctx, renderX, renderY, block.width, block.height, radius);
 
         // Bold amber "0" indicating imminent destruction
         ctx.fillStyle = flash > 0 ? '#fef08a' : '#fbbf24';
@@ -224,7 +321,7 @@ export class CanvasRenderer {
         ctx.fillStyle = flash > 0 ? `rgba(94, 234, 212, ${0.16 + flash})` : 'rgba(45, 212, 191, 0.16)';
         ctx.strokeStyle = flash > 0 ? '#99f6e4' : 'rgba(45, 212, 191, 0.7)';
         ctx.lineWidth = 2;
-        this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
+        this.fillAndStrokeRoundedRect(ctx, renderX, renderY, block.width, block.height, radius);
 
         const remainingHP = after?.active ? after.value : 0;
 
@@ -243,7 +340,7 @@ export class CanvasRenderer {
         ctx.fillStyle = flash > 0 ? `rgba(56, 189, 248, ${0.25 + flash})` : 'rgba(18, 28, 42, 0.8)';
         ctx.strokeStyle = flash > 0 ? '#7dd3fc' : 'rgba(70, 95, 120, 0.35)';
         ctx.lineWidth = 1.5;
-        this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
+        this.fillAndStrokeRoundedRect(ctx, renderX, renderY, block.width, block.height, radius);
 
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '700 21px Inter, system-ui, -apple-system, sans-serif';

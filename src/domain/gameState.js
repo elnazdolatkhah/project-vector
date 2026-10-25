@@ -1,4 +1,5 @@
-import { VERSION, PHYSICS_CONFIG } from '../config.js';
+import { VERSION, PHYSICS_CONFIG, PROGRESSION_CONFIG } from '../config.js';
+import { applyTurnResult, generateTopRow, checkDangerLineFailure } from './progression.js';
 
 function finiteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -13,6 +14,11 @@ export function validateGameState(state) {
   if (!Number.isInteger(state.turn) || state.turn < 1) errors.push('turn must be an integer >= 1');
   if (!state.balls || !Number.isInteger(state.balls.available) || state.balls.available < 1) errors.push('balls.available must be an integer >= 1');
   if (!state.launcher || !finiteNumber(state.launcher.x) || !finiteNumber(state.launcher.y)) errors.push('launcher.x/y must be finite numbers');
+  if (state.rowOriginY !== undefined && !finiteNumber(state.rowOriginY)) errors.push('rowOriginY must be a finite number');
+  if (state.seed !== undefined && !Number.isInteger(state.seed)) errors.push('seed must be an integer');
+  if (state.nextRowIndex !== undefined && (!Number.isInteger(state.nextRowIndex) || state.nextRowIndex < 1)) errors.push('nextRowIndex must be an integer >= 1');
+  if (state.isGameOver !== undefined && typeof state.isGameOver !== 'boolean') errors.push('isGameOver must be a boolean');
+
   if (!Array.isArray(state.blocks)) errors.push('blocks must be an array');
   else {
     const ids = new Set();
@@ -30,6 +36,10 @@ export function validateGameState(state) {
 }
 
 export function createGameState(level) {
+  const rowOriginY = finiteNumber(level.rowOriginY)
+    ? level.rowOriginY
+    : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
+
   const state = {
     ...VERSION,
     levelId: level.levelId,
@@ -38,6 +48,10 @@ export function createGameState(level) {
     balls: { available: level.ballCount },
     launcher: { ...level.launcher },
     blocks: level.blocks.map((b) => ({ ...b })),
+    rowOriginY,
+    seed: Number.isInteger(level.seed) ? level.seed : 1,
+    nextRowIndex: 1,
+    isGameOver: false,
   };
   const validation = validateGameState(state);
   if (!validation.ok) throw new Error(`Invalid initial GameState: ${validation.errors.join('; ')}`);
@@ -47,6 +61,10 @@ export function createGameState(level) {
 export function canonicalizeGameState(state) {
   const validation = validateGameState(state);
   if (!validation.ok) throw new Error(`Invalid GameState: ${validation.errors.join('; ')}`);
+  const rowOriginY = finiteNumber(state.rowOriginY)
+    ? state.rowOriginY
+    : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
+
   return {
     schemaVersion: state.schemaVersion,
     gameVersion: state.gameVersion,
@@ -59,6 +77,10 @@ export function canonicalizeGameState(state) {
     blocks: [...state.blocks]
       .map((b) => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height, value: b.value, active: b.active }))
       .sort((a, b) => a.id.localeCompare(b.id)),
+    rowOriginY,
+    seed: Number.isInteger(state.seed) ? state.seed : 1,
+    nextRowIndex: Number.isInteger(state.nextRowIndex) ? state.nextRowIndex : 1,
+    isGameOver: Boolean(state.isGameOver),
   };
 }
 
@@ -90,20 +112,5 @@ export function clampLauncherX(x, config = PHYSICS_CONFIG) {
   return Math.round(clamped * 1e6) / 1e6;
 }
 
-export function applyTurnResult(state, simulationResult) {
-  const nextLauncherX = simulationResult?.nextLauncher?.x ??
-    (simulationResult?.firstExitX != null ? clampLauncherX(simulationResult.firstExitX) : state.launcher.x);
-  const nextState = {
-    ...state,
-    turn: state.turn + 1,
-    score: state.score + (simulationResult?.score || 0),
-    blocks: (simulationResult?.finalBlocks || state.blocks).map((b) => ({ ...b })),
-    launcher: {
-      x: nextLauncherX,
-      y: state.launcher.y,
-    },
-  };
-  const validation = validateGameState(nextState);
-  if (!validation.ok) throw new Error(`Invalid transitioned GameState: ${validation.errors.join('; ')}`);
-  return canonicalizeGameState(nextState);
-}
+export { applyTurnResult, generateTopRow, checkDangerLineFailure, PROGRESSION_CONFIG };
+

@@ -21,6 +21,7 @@ export interface Launcher {
 export interface Level {
   levelId: string;
   name: string;
+  rowOriginY?: number;
   launcher: Launcher;
   ballCount: number;
   blocks: Block[];
@@ -37,6 +38,10 @@ export interface GameState {
   balls: { available: number };
   launcher: Launcher;
   blocks: Block[];
+  rowOriginY?: number;
+  seed?: number;
+  nextRowIndex?: number;
+  isGameOver?: boolean;
 }
 
 export interface Ball {
@@ -91,6 +96,8 @@ export interface FuturePreview {
   firstExitX?: number | null;
   nextLauncher?: Launcher;
   result: SimulationResult;
+  nextGameState: GameState;
+  isGameOver: boolean;
 }
 
 export interface RobustnessAnalysis {

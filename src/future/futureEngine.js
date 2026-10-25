@@ -1,6 +1,6 @@
 import { simulateTurn } from '../physics/simulation.js';
 import { INPUT_CONFIG } from '../config.js';
-import { fingerprintGameState } from '../domain/gameState.js';
+import { fingerprintGameState, applyTurnResult } from '../domain/gameState.js';
 
 export function blockHP(blocks) {
   return blocks.filter((b) => b.active).reduce((sum, b) => sum + Math.max(0, b.value), 0);
@@ -12,6 +12,7 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
   const result = simulateTurn(gameState, angleDeg, { record });
   const remainingHP = blockHP(result.finalBlocks);
   const remainingBlocks = result.finalBlocks.filter((b) => b.active).length;
+  const nextGameState = applyTurnResult(gameState, result);
   return {
     stateFingerprint: fingerprintGameState(gameState),
     physicsVersion: gameState.physicsVersion,
@@ -27,6 +28,8 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     firstExitX: result.firstExitX,
     nextLauncher: result.nextLauncher,
     result,
+    nextGameState,
+    isGameOver: nextGameState.isGameOver,
   };
 }
 
