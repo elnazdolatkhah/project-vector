@@ -10,17 +10,24 @@ export interface VisualBall {
   vy: number;
   radius: number;
   opacity?: number;
-  scale?: number;
 }
 
 export interface BlockHitEffect {
   time: number;
   duration: number;
+  intensity?: number;
 }
 
 export interface BlockDestructionEffect {
   block: Block;
   time: number;
+  duration: number;
+}
+
+export interface TrajectoryTransition {
+  prevPoints: Vector2D[] | null;
+  currPoints: Vector2D[];
+  startTime: number;
   duration: number;
 }
 
@@ -30,8 +37,12 @@ export interface RenderOptions {
   future?: FuturePreview | null;
   aimAngle?: number | null;
   launcherRecoil?: { time: number; angleDeg: number; duration: number } | null;
+  launcherSettle?: { time: number; duration: number } | null;
   hitEffects?: Map<string, BlockHitEffect> | null;
   destructionEffects?: BlockDestructionEffect[] | null;
+  trajectoryTransition?: TrajectoryTransition | null;
+  returnPoint?: { x: number; y: number } | null;
+  readyFadeAlpha?: number;
   now?: number;
 }
 
@@ -58,8 +69,12 @@ export class CanvasRenderer {
     future = null,
     aimAngle = null,
     launcherRecoil = null,
+    launcherSettle = null,
     hitEffects = null,
     destructionEffects = null,
+    trajectoryTransition = null,
+    returnPoint = null,
+    readyFadeAlpha = 1.0,
     now = performance.now(),
   }: RenderOptions): void {
     const ctx = this.ctx;
@@ -83,28 +98,33 @@ export class CanvasRenderer {
     // Clean boundary perimeter
     this.drawBoundary(ctx);
 
-    // Trajectory paths rendered BEHIND blocks so prediction never obscures targets
+    // Hierarchy 3: Quiet, restrained ghost-ball trajectory preview behind blocks
     if (future?.trajectories) {
-      this.drawTrajectories(ctx, future.trajectories);
+      this.drawTrajectoryPreview(ctx, future.trajectories, trajectoryTransition, readyFadeAlpha, now);
     }
 
     // Direct aim guide from launcher
     if (aimAngle != null) {
-      this.drawAim(ctx, state.launcher, aimAngle);
+      this.drawAim(ctx, state.launcher, aimAngle, readyFadeAlpha);
     }
 
-    // Active blocks with hit feedback and diegetic consequence states
+    // Hierarchy 2: Blocks and their state changes with capped hit feedback
     this.drawBlocks(ctx, state.blocks, future, hitEffects, now);
 
-    // Destruction exit animations (blocks in transit of breaking)
+    // Destruction exit animations (restrained micro-scale and fade)
     if (destructionEffects && destructionEffects.length > 0) {
       this.drawDestructionEffects(ctx, destructionEffects, now);
     }
 
-    // Launcher origin point with subtle recoil feel
-    this.drawLauncher(ctx, state.launcher, state.balls.available, launcherRecoil, now);
+    // Launcher origin point with subtle recoil and settle responses
+    this.drawLauncher(ctx, state.launcher, state.balls.available, launcherRecoil, launcherSettle, now);
 
-    // Live animated balls with interpolation and stream rhythm
+    // Return point indicator if established during volley
+    if (returnPoint) {
+      this.drawReturnPoint(ctx, returnPoint);
+    }
+
+    // Hierarchy 1: Live moving balls (primary kinetic object with high visual contrast)
     if (liveBalls && liveBalls.length > 0) {
       this.drawBalls(ctx, liveBalls);
     }
@@ -112,14 +132,27 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  private drawReturnPoint(ctx: CanvasRenderingContext2D, point: { x: number; y: number }): void {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(95, 210, 255, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 9, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(95, 210, 255, 0.35)';
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   private drawBoundary(ctx: CanvasRenderingContext2D): void {
     ctx.save();
-    // Restrained court perimeter outline
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 2;
     ctx.strokeRect(8, 8, PHYSICS_CONFIG.canvasWidth - 16, PHYSICS_CONFIG.canvasHeight - 16);
 
-    // Top ceiling cushion hint
     ctx.strokeStyle = 'rgba(95, 210, 255, 0.2)';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -148,7 +181,7 @@ export class CanvasRenderer {
 
       ctx.save();
 
-      // Hit feedback: micro-compression and local flash (presentation only)
+      // Capped hit feedback: damped flash and subtle scale (never washes out numbers)
       let scale = 1.0;
       let flash = 0;
       if (hitEffects && hitEffects.has(block.id)) {
@@ -156,8 +189,9 @@ export class CanvasRenderer {
         const elapsed = now - hit.time;
         if (elapsed < hit.duration) {
           const progress = elapsed / hit.duration;
-          scale = 1.0 + Math.sin(progress * Math.PI) * 0.06;
-          flash = (1 - progress) * 0.45;
+          const intensity = hit.intensity ?? 1.0;
+          scale = 1.0 + Math.sin(progress * Math.PI) * 0.025 * intensity;
+          flash = Math.min(0.12, (1 - progress) * 0.12 * intensity);
         }
       }
 
@@ -172,13 +206,13 @@ export class CanvasRenderer {
       const radius = 6;
 
       if (projectedDestroyed) {
-        // Destroyed: Clean amber state, instantly recognizable without text clutter
-        ctx.fillStyle = flash > 0 ? `rgba(251, 191, 36, ${0.18 + flash * 0.3})` : 'rgba(245, 158, 11, 0.18)';
+        // Destroyed: Clean amber state, instantly recognizable
+        ctx.fillStyle = flash > 0 ? `rgba(251, 191, 36, ${0.18 + flash})` : 'rgba(245, 158, 11, 0.18)';
         ctx.strokeStyle = flash > 0 ? '#fef08a' : '#f59e0b';
         ctx.lineWidth = 2;
         this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
 
-        // Bold amber "0" indicating imminent clear
+        // Bold amber "0" indicating imminent destruction
         ctx.fillStyle = flash > 0 ? '#fef08a' : '#fbbf24';
         ctx.font = '800 20px Inter, system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
@@ -187,33 +221,31 @@ export class CanvasRenderer {
 
       } else if (projectedDamage > 0) {
         // Damaged: Subtle teal highlight with clear remaining durability
-        ctx.fillStyle = flash > 0 ? `rgba(94, 234, 212, ${0.16 + flash * 0.3})` : 'rgba(45, 212, 191, 0.16)';
+        ctx.fillStyle = flash > 0 ? `rgba(94, 234, 212, ${0.16 + flash})` : 'rgba(45, 212, 191, 0.16)';
         ctx.strokeStyle = flash > 0 ? '#99f6e4' : 'rgba(45, 212, 191, 0.7)';
         ctx.lineWidth = 2;
         this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
 
         const remainingHP = after?.active ? after.value : 0;
 
-        // Display remaining durability in crisp white
-        ctx.fillStyle = flash > 0 ? '#ffffff' : '#f0fdfa';
+        ctx.fillStyle = '#f0fdfa';
         ctx.font = '800 20px Inter, system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(String(remainingHP), centerX, centerY - 4);
 
-        // Small, restrained damage delta badge below
         ctx.fillStyle = '#2dd4bf';
         ctx.font = '700 11px Inter, system-ui, -apple-system, sans-serif';
         ctx.fillText(`-${projectedDamage}`, centerX, centerY + 13);
 
       } else {
         // Unaffected: Visually recedes slightly, solid and readable
-        ctx.fillStyle = flash > 0 ? `rgba(56, 189, 248, ${0.3 + flash * 0.3})` : 'rgba(18, 28, 42, 0.8)';
+        ctx.fillStyle = flash > 0 ? `rgba(56, 189, 248, ${0.25 + flash})` : 'rgba(18, 28, 42, 0.8)';
         ctx.strokeStyle = flash > 0 ? '#7dd3fc' : 'rgba(70, 95, 120, 0.35)';
         ctx.lineWidth = 1.5;
         this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, radius);
 
-        ctx.fillStyle = flash > 0 ? '#ffffff' : '#cbd5e1';
+        ctx.fillStyle = '#cbd5e1';
         ctx.font = '700 21px Inter, system-ui, -apple-system, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -234,8 +266,8 @@ export class CanvasRenderer {
       if (elapsed >= effect.duration) continue;
 
       const progress = elapsed / effect.duration;
-      const opacity = Math.max(0, (1 - progress) * 0.85);
-      const scale = 1.0 + progress * 0.08;
+      const opacity = Math.max(0, (1 - progress) * 0.8);
+      const scale = 1.0 + progress * 0.05;
       const block = effect.block;
       const centerX = block.x + block.width / 2;
       const centerY = block.y + block.height / 2;
@@ -247,21 +279,17 @@ export class CanvasRenderer {
 
       // Subtle expanding amber fade
       ctx.strokeStyle = `rgba(251, 191, 36, ${opacity})`;
-      ctx.fillStyle = `rgba(245, 158, 11, ${opacity * 0.3})`;
+      ctx.fillStyle = `rgba(245, 158, 11, ${opacity * 0.25})`;
       ctx.lineWidth = 1.5;
       this.fillAndStrokeRoundedRect(ctx, block.x, block.y, block.width, block.height, 6);
 
-      // 4 tiny restrained corner fragments separating outward by 6–10px
-      const offset = progress * 8;
-      ctx.fillStyle = `rgba(251, 191, 36, ${opacity * 0.9})`;
-      const fragSize = 3;
-      // Top-left
+      // 4 tiny restrained corner fragments separating outward by 5px
+      const offset = progress * 5;
+      ctx.fillStyle = `rgba(251, 191, 36, ${opacity * 0.8})`;
+      const fragSize = 2;
       ctx.fillRect(block.x - offset, block.y - offset, fragSize, fragSize);
-      // Top-right
       ctx.fillRect(block.x + block.width + offset - fragSize, block.y - offset, fragSize, fragSize);
-      // Bottom-left
       ctx.fillRect(block.x - offset, block.y + block.height + offset - fragSize, fragSize, fragSize);
-      // Bottom-right
       ctx.fillRect(block.x + block.width + offset - fragSize, block.y + block.height + offset - fragSize, fragSize, fragSize);
 
       ctx.restore();
@@ -286,76 +314,161 @@ export class CanvasRenderer {
     ctx.stroke();
   }
 
-  private drawTrajectories(ctx: CanvasRenderingContext2D, trajectories: Record<string, Vector2D[]>): void {
+  /**
+   * Reference Motion Calibration: Quieted ghost-ball trajectory.
+   * Increased spacing (38 units), smaller radius (2.0px), reduced opacity post-rebound,
+   * and capped visible count (26 markers).
+   */
+  private drawTrajectoryPreview(
+    ctx: CanvasRenderingContext2D,
+    trajectories: Record<string, Vector2D[]>,
+    transition: TrajectoryTransition | null,
+    readyFadeAlpha: number,
+    now: number
+  ): void {
     const ids = Object.keys(trajectories);
+    const primaryPoints = trajectories[ids[0]];
+    if (!primaryPoints || primaryPoints.length < 2) return;
+
     ctx.save();
 
-    // 1. Secondary/trailing paths: faint whisper of volley spread
-    for (let index = 1; index < ids.length; index += 1) {
-      const points = trajectories[ids[index]];
-      if (!points || points.length < 2) continue;
-
-      ctx.strokeStyle = 'rgba(45, 212, 191, 0.04)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i += 4) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
-      ctx.stroke();
-    }
-
-    // 2. Primary lead path: single clear, slender, refined trajectory
-    const primaryPoints = trajectories[ids[0]];
-    if (primaryPoints && primaryPoints.length >= 2) {
-      ctx.strokeStyle = 'rgba(45, 212, 191, 0.65)';
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(primaryPoints[0].x, primaryPoints[0].y);
-      for (let i = 1; i < primaryPoints.length; i += 2) {
-        ctx.lineTo(primaryPoints[i].x, primaryPoints[i].y);
-      }
-      ctx.stroke();
-
-      // Subtle rebound dots only at genuine reflection vertices
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-      for (let i = 1; i < primaryPoints.length - 1; i += 1) {
-        const pPrev = primaryPoints[i - 1];
-        const pCurr = primaryPoints[i];
-        const pNext = primaryPoints[i + 1];
-        const dx1 = pCurr.x - pPrev.x;
-        const dy1 = pCurr.y - pPrev.y;
-        const dx2 = pNext.x - pCurr.x;
-        const dy2 = pNext.y - pCurr.y;
-        const dot = dx1 * dx2 + dy1 * dy2;
-        const mag = Math.hypot(dx1, dy1) * Math.hypot(dx2, dy2);
-        if (mag > 0 && dot / mag < 0.85) {
-          ctx.beginPath();
-          ctx.arc(pCurr.x, pCurr.y, 2.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
+    // Check if smooth transition cross-fade is active
+    if (transition && transition.prevPoints && transition.prevPoints.length >= 2) {
+      const elapsed = now - transition.startTime;
+      if (elapsed < transition.duration) {
+        const t = elapsed / transition.duration;
+        this.renderGhostPath(ctx, transition.prevPoints, (1 - t) * readyFadeAlpha);
+        this.renderGhostPath(ctx, transition.currPoints, t * readyFadeAlpha);
+        ctx.restore();
+        return;
       }
     }
+
+    // Steady-state ghost path
+    this.renderGhostPath(ctx, primaryPoints, readyFadeAlpha);
 
     ctx.restore();
   }
 
-  private drawAim(ctx: CanvasRenderingContext2D, launcher: Launcher, angleDeg: number): void {
+  /**
+   * Renders ghost-ball markers along the authoritative trajectory polyline with restored readability.
+   */
+  private renderGhostPath(ctx: CanvasRenderingContext2D, points: Vector2D[], alphaMultiplier: number): void {
+    if (points.length < 2 || alphaMultiplier <= 0.01) return;
+
+    const SPACING = 34; // Dotted ghost-ball spacing
+    const MARKER_RADIUS = 2.35; // Target radius: 2.3–2.4 world units
+    const MAX_MARKERS = 32; // Marker count cap
+
+    // Detect first rebound distance along points to drop opacity on subsequent legs
+    let firstReboundDist = Infinity;
+    let distSoFar = 0;
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const pPrev = points[i - 1];
+      const pCurr = points[i];
+      const pNext = points[i + 1];
+      const segLen = Math.hypot(pCurr.x - pPrev.x, pCurr.y - pPrev.y);
+      distSoFar += segLen;
+      const dx1 = pCurr.x - pPrev.x;
+      const dy1 = pCurr.y - pPrev.y;
+      const dx2 = pNext.x - pCurr.x;
+      const dy2 = pNext.y - pCurr.y;
+      const dot = dx1 * dx2 + dy1 * dy2;
+      const mag = Math.hypot(dx1, dy1) * Math.hypot(dx2, dy2);
+      if (mag > 0 && dot / mag < 0.85) {
+        firstReboundDist = distSoFar;
+        break;
+      }
+    }
+
+    let accumulatedDist = 0;
+    let nextMarkerDist = SPACING;
+    let markerIndex = 0;
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      const pA = points[i];
+      const pB = points[i + 1];
+      const segDx = pB.x - pA.x;
+      const segDy = pB.y - pA.y;
+      const segLen = Math.hypot(segDx, segDy);
+      if (segLen < 1e-6) continue;
+
+      while (accumulatedDist + segLen >= nextMarkerDist && markerIndex < MAX_MARKERS) {
+        const t = (nextMarkerDist - accumulatedDist) / segLen;
+        const mx = pA.x + segDx * t;
+        const my = pA.y + segDy * t;
+
+        // Calibrated opacity hierarchy:
+        // First leg: approximately 0.62–0.68
+        // Post-rebound leg: approximately 0.30–0.35, gently tapering with distance, staying practically readable
+        let baseOpacity: number;
+        if (nextMarkerDist <= firstReboundDist) {
+          const legProgress = Math.min(1.0, nextMarkerDist / Math.max(1, firstReboundDist));
+          baseOpacity = 0.68 - legProgress * 0.06; // 0.68 -> 0.62
+        } else {
+          const postDist = nextMarkerDist - firstReboundDist;
+          const postProgress = Math.min(1.0, postDist / 1200);
+          baseOpacity = 0.35 - postProgress * 0.09; // 0.35 -> 0.26
+        }
+
+        const markerOpacity = baseOpacity * alphaMultiplier;
+
+        ctx.fillStyle = `rgba(45, 212, 191, ${markerOpacity})`;
+        ctx.beginPath();
+        ctx.arc(mx, my, MARKER_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+
+        markerIndex += 1;
+        nextMarkerDist += SPACING;
+      }
+
+      accumulatedDist += segLen;
+      if (markerIndex >= MAX_MARKERS) break;
+    }
+
+    // Rebound contact readability: slightly clearer, restrained ring at deflection vertices
+    for (let i = 1; i < points.length - 1; i += 1) {
+      const pPrev = points[i - 1];
+      const pCurr = points[i];
+      const pNext = points[i + 1];
+      const dx1 = pCurr.x - pPrev.x;
+      const dy1 = pCurr.y - pPrev.y;
+      const dx2 = pNext.x - pCurr.x;
+      const dy2 = pNext.y - pCurr.y;
+      const dot = dx1 * dx2 + dy1 * dy2;
+      const mag = Math.hypot(dx1, dy1) * Math.hypot(dx2, dy2);
+      if (mag > 0 && dot / mag < 0.85) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.75 * alphaMultiplier})`;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.arc(pCurr.x, pCurr.y, 3.2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = `rgba(45, 212, 191, ${0.72 * alphaMultiplier})`;
+        ctx.beginPath();
+        ctx.arc(pCurr.x, pCurr.y, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  private drawAim(ctx: CanvasRenderingContext2D, launcher: Launcher, angleDeg: number, alphaMultiplier: number): void {
     ctx.save();
     const theta = (angleDeg * Math.PI) / 180;
     const cos = Math.cos(theta);
     const sin = Math.sin(theta);
-    const rayLength = 160;
 
-    // Slender, restrained aim guide connecting launcher to trajectory
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.setLineDash([5, 5]);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(launcher.x, launcher.y);
-    ctx.lineTo(launcher.x + rayLength * cos, launcher.y - rayLength * sin);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    // Initial 2 clearly visible ghost markers along aim angle (0.62–0.68 range)
+    const step = 34;
+    for (let i = 1; i <= 2; i += 1) {
+      const dist = i * step;
+      const dotX = launcher.x + dist * cos;
+      const dotY = launcher.y - dist * sin;
+      ctx.fillStyle = `rgba(45, 212, 191, ${(0.68 - i * 0.05) * alphaMultiplier})`;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 2.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     ctx.restore();
   }
@@ -365,6 +478,7 @@ export class CanvasRenderer {
     launcher: Launcher,
     ballCount: number,
     recoil: { time: number; angleDeg: number; duration: number } | null,
+    settle: { time: number; duration: number } | null,
     now: number
   ): void {
     ctx.save();
@@ -372,22 +486,33 @@ export class CanvasRenderer {
     let drawX = launcher.x;
     let drawY = launcher.y;
     let radius = 7;
+    let haloOpacity = 0.15;
 
-    // Subtle tactile launch recoil (shifts back 3px along recoil angle and springs forward)
+    // Subtle tactile launch recoil (~110ms)
     if (recoil) {
       const elapsed = now - recoil.time;
       if (elapsed < recoil.duration) {
         const p = elapsed / recoil.duration;
-        const recoilDist = Math.sin(p * Math.PI) * 3.5;
+        const recoilDist = Math.sin(p * Math.PI) * 3.0;
         const theta = (recoil.angleDeg * Math.PI) / 180;
         drawX -= recoilDist * Math.cos(theta);
         drawY += recoilDist * Math.sin(theta);
-        radius = 7 + Math.sin(p * Math.PI) * 1.5;
+        radius = 7 + Math.sin(p * Math.PI) * 1.2;
+      }
+    }
+
+    // Volley end settle transition (~95ms)
+    if (settle) {
+      const elapsed = now - settle.time;
+      if (elapsed < settle.duration) {
+        const p = elapsed / settle.duration;
+        radius = 7 + Math.sin(p * Math.PI) * 0.8;
+        haloOpacity = 0.15 + Math.sin(p * Math.PI) * 0.2;
       }
     }
 
     // Outer subtle guide ring
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.strokeStyle = `rgba(255, 255, 255, ${haloOpacity})`;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(drawX, drawY, radius + 4, 0, Math.PI * 2);
@@ -409,29 +534,27 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  /**
+   * Hierarchy 1: Live moving balls.
+   * Solid, crisp white core with a clean subtle dark rim for high contrast over dark court and blocks.
+   * Stable size, no trails, no glow field, no motion blur.
+   */
   private drawBalls(ctx: CanvasRenderingContext2D, balls: VisualBall[]): void {
     ctx.save();
 
     for (const ball of balls) {
-      const opacity = ball.opacity ?? 1.0;
-      const radius = ball.radius * (ball.scale ?? 1.0);
+      const radius = ball.radius; // Stable size during flight
 
-      // Micro velocity hint (purely visual sub-ball 2px behind for stream coherence)
-      const speed = Math.hypot(ball.vx, ball.vy);
-      if (speed > 0.5) {
-        const backX = ball.x - (ball.vx / speed) * 2.5;
-        const backY = ball.y - (ball.vy / speed) * 2.5;
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity * 0.25})`;
-        ctx.beginPath();
-        ctx.arc(backX, backY, radius * 0.85, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Main crisp white ball
-      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      // Solid brilliant white ball
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
       ctx.fill();
+
+      // Clean 1px high-contrast perimeter edge ensuring crisp legibility over blocks
+      ctx.strokeStyle = 'rgba(0, 5, 12, 0.45)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
 
     ctx.restore();

@@ -1,7 +1,7 @@
 import { PHYSICS_CONFIG, INPUT_CONFIG } from '../config.js';
 import { V } from './vector.js';
 import { sweptCircleVsAABB } from './collision.js';
-import { validateGameState } from '../domain/gameState.js';
+import { validateGameState, clampLauncherX } from '../domain/gameState.js';
 
 function assertAngle(angleDeg) {
   if (!Number.isFinite(angleDeg) || angleDeg < INPUT_CONFIG.angleMin || angleDeg > INPUT_CONFIG.angleMax) {
@@ -41,6 +41,7 @@ export class Simulation {
     }));
 
     this.stats = { hits: 0, destroyed: 0, ballsExited: 0 };
+    this.firstExitX = null;
     this.trajectories = record ? {} : null;
     this.events = [];
   }
@@ -93,6 +94,10 @@ export class Simulation {
   }
 
   result() {
+    const nextLauncherX = this.firstExitX != null
+      ? clampLauncherX(this.firstExitX, this.config)
+      : this.launcher.x;
+
     return {
       angleDeg: this.angleDeg,
       finalBlocks: this.blocks.map((b) => ({ ...b })),
@@ -101,6 +106,11 @@ export class Simulation {
       events: this.events.map((e) => ({ ...e })),
       score: this.stats.hits + this.stats.destroyed * 3,
       elapsedTime: round6(this.time),
+      firstExitX: this.firstExitX,
+      nextLauncher: {
+        x: nextLauncherX,
+        y: this.launcher.y,
+      },
     };
   }
 
@@ -125,9 +135,13 @@ export class Simulation {
       remainingFrac *= 1 - hit.t;
 
       if (hit.type === 'exit') {
+        const exitX = round6(ball.x);
+        if (this.firstExitX === null) {
+          this.firstExitX = exitX;
+        }
         ball.active = false;
         this.stats.ballsExited += 1;
-        this.events.push({ t: round6(this.time), type: 'BallExited', ballId: ball.id });
+        this.events.push({ t: round6(this.time), type: 'BallExited', ballId: ball.id, x: exitX });
         return;
       }
 
@@ -188,3 +202,5 @@ export function simulateTurn(gameState, angleDeg, options = {}) {
 function round6(value) {
   return Math.round(value * 1e6) / 1e6;
 }
+
+export { clampLauncherX };

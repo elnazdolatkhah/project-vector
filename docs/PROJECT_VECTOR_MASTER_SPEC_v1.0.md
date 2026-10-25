@@ -79,7 +79,7 @@ Boundary behavior:
 - left: reflect
 - right: reflect
 - top: reflect
-- bottom: EXIT
+- bottom: EXIT (The first ball to exit through the bottom determines the horizontal launcher origin for the next turn; next-turn launcher Y remains fixed at the baseline; X is clamped to `[ballRadius, canvasWidth - ballRadius]`).
 
 Ball-to-ball collision is disabled in the MVP.
 

@@ -6,8 +6,7 @@
 - Preview, gameplay, solver, replay, and validation must call the same physics implementation.
 - Fixed-step simulation.
 - Swept circle-vs-AABB collision with corner handling.
-- Bottom boundary is EXIT, not reflect.
-- No hidden randomness in core physics.
+- Bottom boundary is EXIT, not reflect. The first ball to exit through the bottom determines the horizontal launcher origin for the next turn.
 - State carries independent `schemaVersion`, `gameVersion`, and `physicsVersion`.
 - Canonical player aim domain = full upward hemisphere, 1°–179° (superseding earlier 1°–89° restriction).
 - The player must be able to inspect consequences before launch. Prediction is the product's core differentiator.

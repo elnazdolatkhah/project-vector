@@ -1,10 +1,16 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { INPUT_CONFIG, PHYSICS_CONFIG } from './config.js';
-import { createGameState } from './domain/gameState.js';
+import { createGameState, applyTurnResult, clampLauncherX } from './domain/gameState.js';
 import { Simulation } from './physics/simulation.js';
 import { previewFuture, analyzeRobustness } from './future/futureEngine.js';
 import { LEVELS } from './levels/levels.js';
-import { CanvasRenderer, type VisualBall, type BlockHitEffect, type BlockDestructionEffect } from './render/canvasRenderer';
+import {
+  CanvasRenderer,
+  type VisualBall,
+  type BlockHitEffect,
+  type BlockDestructionEffect,
+  type TrajectoryTransition,
+} from './render/canvasRenderer';
 import { viewToWorld } from './render/viewport.js';
 import type { GameState, FuturePreview, Block } from './types.js';
 
@@ -27,8 +33,11 @@ export const App: React.FC = () => {
   const accumulatorRef = useRef(0);
   const lastTimeRef = useRef(0);
   const launcherRecoilRef = useRef<{ time: number; angleDeg: number; duration: number } | null>(null);
+  const launcherSettleRef = useRef<{ time: number; duration: number } | null>(null);
+  const readyFadeStartRef = useRef<number>(0);
   const hitEffectsRef = useRef<Map<string, BlockHitEffect>>(new Map());
   const destructionEffectsRef = useRef<BlockDestructionEffect[]>([]);
+  const trajectoryTransitionRef = useRef<TrajectoryTransition | null>(null);
 
   // Core state
   const [levelIndex, setLevelIndex] = useState(0);
@@ -63,13 +72,27 @@ export const App: React.FC = () => {
   const renderCurrent = useCallback(() => {
     if (!rendererRef.current) return;
     const now = performance.now();
+
+    // Smooth ready-fade alpha calculation after volley ends (80–120ms target: calibrated to 95ms)
+    let readyFadeAlpha = 1.0;
+    if (readyFadeStartRef.current > 0) {
+      const elapsed = now - readyFadeStartRef.current;
+      readyFadeAlpha = Math.min(1.0, elapsed / 95);
+      if (readyFadeAlpha >= 1.0) {
+        readyFadeStartRef.current = 0;
+      }
+    }
+
     rendererRef.current.render({
       state: stateRef.current,
       future: runningRef.current ? null : futureRef.current,
       aimAngle: runningRef.current ? null : angleRef.current,
       launcherRecoil: launcherRecoilRef.current,
+      launcherSettle: launcherSettleRef.current,
       hitEffects: hitEffectsRef.current,
       destructionEffects: destructionEffectsRef.current,
+      trajectoryTransition: trajectoryTransitionRef.current,
+      readyFadeAlpha,
       now,
     });
   }, []);
@@ -95,8 +118,22 @@ export const App: React.FC = () => {
   const computeAuthoritativeFuture = useCallback((stateToPreview: GameState, targetAngle: number) => {
     if (runningRef.current) return;
     try {
+      const prevFuture = futureRef.current;
       const p = previewFuture(stateToPreview, targetAngle, { record: true }) as FuturePreview;
       const r = analyzeRobustness(stateToPreview, targetAngle).percent;
+
+      // Clean 80ms trajectory cross-fade transition between authoritative future updates
+      if (prevFuture?.trajectories?.ball0 && p.trajectories?.ball0) {
+        trajectoryTransitionRef.current = {
+          prevPoints: prevFuture.trajectories.ball0,
+          currPoints: p.trajectories.ball0,
+          startTime: performance.now(),
+          duration: 80,
+        };
+      } else {
+        trajectoryTransitionRef.current = null;
+      }
+
       futureRef.current = p;
       robustnessRef.current = r;
       updateFutureDOM(p, r, false);
@@ -153,6 +190,9 @@ export const App: React.FC = () => {
     hitEffectsRef.current.clear();
     destructionEffectsRef.current = [];
     launcherRecoilRef.current = null;
+    launcherSettleRef.current = null;
+    trajectoryTransitionRef.current = null;
+    readyFadeStartRef.current = performance.now();
 
     if (angleTextRef.current) {
       angleTextRef.current.textContent = `${angleRef.current.toFixed(1)}°`;
@@ -176,18 +216,23 @@ export const App: React.FC = () => {
     return Math.max(INPUT_CONFIG.angleMin, Math.min(INPUT_CONFIG.angleMax, raw));
   }, []);
 
-  // Launch turn simulation with render interpolation and feedback layers
+  // Launch turn simulation with calibrated visual hierarchy and volley-end timing
   const playTurn = useCallback((selectedAngle: number) => {
     setIsRunning(true);
     runningRef.current = true;
+
+    // Instant removal of all prediction visuals on shot commitment (0 residue)
     futureRef.current = null;
+    trajectoryTransitionRef.current = null;
+    launcherSettleRef.current = null;
+    readyFadeStartRef.current = 0;
     updateFutureDOM(null, 100, true);
 
-    // Subtle launcher compression and release impulse
+    // Subtle launcher compression and release impulse (~110ms)
     launcherRecoilRef.current = {
       time: performance.now(),
       angleDeg: selectedAngle,
-      duration: 120,
+      duration: 110,
     };
 
     // Instantiate authoritative simulation
@@ -201,7 +246,15 @@ export const App: React.FC = () => {
     hitEffectsRef.current.clear();
     destructionEffectsRef.current = [];
 
-    // Map to quickly look up block initial values for destruction events
+    interface ReturningBall {
+      id: string;
+      startX: number;
+      targetX: number;
+      startTime: number;
+      duration: number;
+    }
+    const returningBalls: ReturningBall[] = [];
+
     const blockMap = new Map<string, Block>(stateRef.current.blocks.map((b) => [b.id, b]));
 
     function frame(now: number) {
@@ -220,20 +273,38 @@ export const App: React.FC = () => {
         sim.step();
         const eventsAfter = sim.events.length;
 
-        // Process discrete events for presentation-only feedback
+        // Process discrete events with capped heavy-volley damping
         for (let i = eventsBefore; i < eventsAfter; i += 1) {
           const ev = sim.events[i];
           if (ev.type === 'BlockCollision' && ev.blockId) {
-            hitEffectsRef.current.set(ev.blockId, { time: now, duration: 110 });
+            const existing = hitEffectsRef.current.get(ev.blockId);
+            const timeSinceLast = existing ? now - existing.time : 999;
+            const isRapid = timeSinceLast < 60;
+            hitEffectsRef.current.set(ev.blockId, {
+              time: now,
+              duration: isRapid ? 65 : 80,
+              intensity: isRapid ? 0.6 : 1.0,
+            });
           } else if (ev.type === 'BlockDestroyed' && ev.blockId) {
             const blk = blockMap.get(ev.blockId) || (sim.blocks as Block[]).find((b: Block) => b.id === ev.blockId);
             if (blk) {
               destructionEffectsRef.current.push({
                 block: { ...blk },
                 time: now,
-                duration: 160,
+                duration: 100, // Quick, restrained 100ms exit
               });
             }
+          } else if (ev.type === 'BallExited' && ev.ballId) {
+            const targetX = clampLauncherX(sim.firstExitX != null ? sim.firstExitX : stateRef.current.launcher.x);
+            const exitX = typeof ev.x === 'number' ? ev.x : targetX;
+            const startX = clampLauncherX(exitX);
+            returningBalls.push({
+              id: ev.ballId,
+              startX,
+              targetX,
+              startTime: now,
+              duration: Math.abs(startX - targetX) < 4 ? 40 : 160,
+            });
           }
         }
 
@@ -243,7 +314,7 @@ export const App: React.FC = () => {
       // Compute interpolation factor alpha between previous and current physics step
       const alpha = sim.finished ? 1.0 : Math.max(0, Math.min(1, accumulatorRef.current / fixedDt));
 
-      // Construct visual ball representations with sub-frame interpolation
+      // Construct visual ball representations with sub-frame interpolation and stable flight size
       const visualBalls: VisualBall[] = [];
       for (const b of sim.balls) {
         if (!b.active) continue;
@@ -257,26 +328,43 @@ export const App: React.FC = () => {
           posY = prev.y + (b.y - prev.y) * alpha;
         }
 
-        // Tactile scale-in for newborn balls
-        const age = sim.time - b.spawnTime;
-        const scaleProgress = Math.min(1, Math.max(0.4, age / 0.05));
-
         visualBalls.push({
           id: b.id,
           x: posX,
           y: posY,
           vx: b.vx,
           vy: b.vy,
-          radius: b.radius,
-          scale: scaleProgress,
-          opacity: scaleProgress,
+          radius: b.radius, // Stable size 6 throughout flight
         });
+      }
+
+      // Smooth horizontal convergence of returning balls toward the first-exit return point
+      for (const rb of returningBalls) {
+        const elapsed = now - rb.startTime;
+        if (elapsed < rb.duration) {
+          const p = Math.min(1.0, elapsed / rb.duration);
+          const ease = 1 - Math.pow(1 - p, 2);
+          const currentX = rb.startX + (rb.targetX - rb.startX) * ease;
+          visualBalls.push({
+            id: rb.id,
+            x: currentX,
+            y: stateRef.current.launcher.y,
+            vx: 0,
+            vy: 0,
+            radius: PHYSICS_CONFIG.ballRadius,
+          });
+        }
       }
 
       // Clean up finished destruction effects
       destructionEffectsRef.current = destructionEffectsRef.current.filter(
         (e) => now - e.time < e.duration
       );
+
+      // Return point indicator target if established
+      const returnPoint = sim.firstExitX != null
+        ? { x: clampLauncherX(sim.firstExitX), y: stateRef.current.launcher.y }
+        : null;
 
       // Render the interpolated frame
       if (rendererRef.current) {
@@ -285,33 +373,38 @@ export const App: React.FC = () => {
           liveBalls: visualBalls,
           aimAngle: null,
           launcherRecoil: launcherRecoilRef.current,
+          launcherSettle: launcherSettleRef.current,
           hitEffects: hitEffectsRef.current,
           destructionEffects: destructionEffectsRef.current,
+          returnPoint,
+          readyFadeAlpha: 0,
           now,
         });
       }
 
-      // Check if simulation and trailing exit animations are complete
       const allExitEffectsDone = destructionEffectsRef.current.length === 0;
+      const allReturningDone = returningBalls.length === 0 || returningBalls.every((rb) => now - rb.startTime >= rb.duration);
 
-      if (!sim.finished || !allExitEffectsDone) {
+      if (!sim.finished || !allExitEffectsDone || !allReturningDone) {
         animFrameRef.current = requestAnimationFrame(frame);
       } else {
-        // Authoritative turn completion
+        // Volley End State: Authoritative turn completion + 95ms visual settle transition
         const result = sim.result();
-        const nextState: GameState = {
-          ...stateRef.current,
-          blocks: result.finalBlocks,
-          score: stateRef.current.score + result.score,
-          turn: stateRef.current.turn + 1,
-        };
+        const nextState = applyTurnResult(stateRef.current, result);
         setGameState(nextState);
         stateRef.current = nextState;
+
+        // Player input becomes active immediately with 0ms dead pause
         setIsRunning(false);
         runningRef.current = false;
         hitEffectsRef.current.clear();
         destructionEffectsRef.current = [];
         launcherRecoilRef.current = null;
+
+        // Visual settle transition (95ms settle, ghost preview fades in concurrently over 95ms)
+        launcherSettleRef.current = { time: performance.now(), duration: 95 };
+        readyFadeStartRef.current = performance.now();
+
         scheduleFutureRecomputation(angleRef.current, true);
       }
     }
@@ -345,7 +438,7 @@ export const App: React.FC = () => {
       angleTextRef.current.classList.add('angle-active');
     }
 
-    // Immediate visual reticle update
+    // Immediate visual aim line update
     renderCurrent();
 
     // Schedule authoritative future calculation

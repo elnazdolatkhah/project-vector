@@ -72,6 +72,8 @@ export interface SimulationResult {
   events: SimulationEvent[];
   score: number;
   elapsedTime: number;
+  firstExitX?: number | null;
+  nextLauncher?: Launcher;
 }
 
 export interface FuturePreview {
@@ -86,6 +88,8 @@ export interface FuturePreview {
   initialHP: number;
   initialBlocks: number;
   trajectories?: Record<string, Vector2D[]> | null;
+  firstExitX?: number | null;
+  nextLauncher?: Launcher;
   result: SimulationResult;
 }
 

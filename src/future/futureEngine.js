@@ -24,6 +24,8 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     initialHP,
     initialBlocks,
     trajectories: result.trajectories,
+    firstExitX: result.firstExitX,
+    nextLauncher: result.nextLauncher,
     result,
   };
 }

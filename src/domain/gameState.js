@@ -1,4 +1,4 @@
-import { VERSION } from '../config.js';
+import { VERSION, PHYSICS_CONFIG } from '../config.js';
 
 function finiteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -81,4 +81,29 @@ export function fingerprintGameState(state) {
     hash = Math.imul(hash, 0x01000193);
   }
   return `pv-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+export function clampLauncherX(x, config = PHYSICS_CONFIG) {
+  const min = config.ballRadius;
+  const max = config.canvasWidth - config.ballRadius;
+  const clamped = Math.max(min, Math.min(max, x));
+  return Math.round(clamped * 1e6) / 1e6;
+}
+
+export function applyTurnResult(state, simulationResult) {
+  const nextLauncherX = simulationResult?.nextLauncher?.x ??
+    (simulationResult?.firstExitX != null ? clampLauncherX(simulationResult.firstExitX) : state.launcher.x);
+  const nextState = {
+    ...state,
+    turn: state.turn + 1,
+    score: state.score + (simulationResult?.score || 0),
+    blocks: (simulationResult?.finalBlocks || state.blocks).map((b) => ({ ...b })),
+    launcher: {
+      x: nextLauncherX,
+      y: state.launcher.y,
+    },
+  };
+  const validation = validateGameState(nextState);
+  if (!validation.ok) throw new Error(`Invalid transitioned GameState: ${validation.errors.join('; ')}`);
+  return canonicalizeGameState(nextState);
 }
