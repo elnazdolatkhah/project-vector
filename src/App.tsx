@@ -74,6 +74,12 @@ export const App: React.FC = () => {
   const futureRef = useRef<FuturePreview | null>(null);
   const robustnessRef = useRef<number>(100);
 
+  // Future Echo temporal reveal timing: fades in after holding angle stable for ~80-120ms
+  const lastAngleMoveTimeRef = useRef<number>(0);
+  const lastScrubAngleRef = useRef<number>(45.0);
+  const echoAnimFrameRef = useRef<number | null>(null);
+  const echoCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Continuous render loop for smooth 60/120Hz display refresh
   const renderCurrent = useCallback(() => {
     if (!rendererRef.current) return;
@@ -91,6 +97,27 @@ export const App: React.FC = () => {
 
     const suppressAimAndFuture = runningRef.current || transitioningRef.current || stateRef.current.stageStatus !== 'active';
 
+    // Future Echo temporal reveal calculation:
+    // During rapid scrub, echo stays quiet (alpha 0).
+    // When aim remains approximately stable for ~80–120ms (calibrated to 95ms), echo fades in cleanly.
+    let futureEchoAlpha = 0;
+    if (!suppressAimAndFuture && futureRef.current) {
+      if (aimingRef.current) {
+        const holdTime = now - lastAngleMoveTimeRef.current;
+        if (holdTime >= 95) {
+          futureEchoAlpha = Math.min(1.0, (holdTime - 95) / 80);
+          if (futureEchoAlpha < 1.0) {
+            if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+            echoAnimFrameRef.current = requestAnimationFrame(() => renderCurrent());
+          }
+        } else {
+          futureEchoAlpha = 0;
+        }
+      } else {
+        futureEchoAlpha = readyFadeAlpha;
+      }
+    }
+
     rendererRef.current.render({
       state: stateRef.current,
       future: suppressAimAndFuture ? null : futureRef.current,
@@ -102,6 +129,7 @@ export const App: React.FC = () => {
       trajectoryTransition: trajectoryTransitionRef.current,
       boardTransition: boardTransitionRef.current,
       readyFadeAlpha,
+      futureEchoAlpha,
       now,
     });
   }, []);
@@ -201,6 +229,10 @@ export const App: React.FC = () => {
     if (runningRef.current && animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
     }
+    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
+    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    lastAngleMoveTimeRef.current = 0;
+
     const idx = (newIndex + levelKeys.length) % levelKeys.length;
     const newState = createGameState(LEVELS[levelKeys[idx]]);
     setLevelIndex(idx);
@@ -245,6 +277,9 @@ export const App: React.FC = () => {
 
   // Launch turn simulation with calibrated visual hierarchy and volley-end timing
   const playTurn = useCallback((selectedAngle: number) => {
+    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
+    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+
     setIsRunning(true);
     runningRef.current = true;
 
@@ -510,6 +545,27 @@ export const App: React.FC = () => {
 
     const newAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = newAngle;
+    lastScrubAngleRef.current = newAngle;
+    lastAngleMoveTimeRef.current = performance.now();
+
+    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
+    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+
+    // Fade in Future Echo if player holds stable angle for ~85-120ms
+    echoCheckTimerRef.current = setTimeout(() => {
+      if (aimingRef.current) {
+        const startFade = performance.now();
+        const duration = 90;
+        function stepFade(fadeNow: number) {
+          if (!aimingRef.current) return;
+          renderCurrent();
+          if (fadeNow - startFade < duration) {
+            echoAnimFrameRef.current = requestAnimationFrame(stepFade);
+          }
+        }
+        echoAnimFrameRef.current = requestAnimationFrame(stepFade);
+      }
+    }, 85);
 
     if (angleTextRef.current) {
       angleTextRef.current.textContent = `${newAngle.toFixed(1)}°`;
@@ -528,7 +584,31 @@ export const App: React.FC = () => {
     if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
 
     const newAngle = pointerToAngle(event.clientX, event.clientY);
+    const angleDiff = Math.abs(newAngle - lastScrubAngleRef.current);
+    if (angleDiff > 0.25) {
+      lastScrubAngleRef.current = newAngle;
+      lastAngleMoveTimeRef.current = performance.now();
+    }
     angleRef.current = newAngle;
+
+    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
+    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+
+    // Schedule reveal timer when scrubbing pauses
+    echoCheckTimerRef.current = setTimeout(() => {
+      if (aimingRef.current) {
+        const startFade = performance.now();
+        const duration = 90;
+        function stepFade(fadeNow: number) {
+          if (!aimingRef.current) return;
+          renderCurrent();
+          if (fadeNow - startFade < duration) {
+            echoAnimFrameRef.current = requestAnimationFrame(stepFade);
+          }
+        }
+        echoAnimFrameRef.current = requestAnimationFrame(stepFade);
+      }
+    }, 85);
 
     // Zero-overhead DOM angle update
     if (angleTextRef.current) {
@@ -545,6 +625,9 @@ export const App: React.FC = () => {
 
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
+
+    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
+    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
 
     const finalAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = finalAngle;

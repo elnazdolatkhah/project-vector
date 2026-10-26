@@ -53,6 +53,8 @@ export interface RenderOptions {
   boardTransition?: BoardTransition | null;
   returnPoint?: { x: number; y: number } | null;
   readyFadeAlpha?: number;
+  futureEchoAlpha?: number;
+  showFutureEcho?: boolean;
   now?: number;
 }
 
@@ -86,6 +88,8 @@ export class CanvasRenderer {
     boardTransition = null,
     returnPoint = null,
     readyFadeAlpha = 1.0,
+    futureEchoAlpha = 1.0,
+    showFutureEcho = true,
     now = performance.now(),
   }: RenderOptions): void {
     const ctx = this.ctx;
@@ -114,6 +118,12 @@ export class CanvasRenderer {
     const isWon = state.stageStatus === 'won';
     const isTerminal = state.stageStatus !== 'active';
     this.drawDangerLine(ctx, isFailed);
+
+    // Hierarchy 4: Future Echo — faint next-turn positions and next launcher
+    // Suppressed during committed volley, board transition, or terminal stage
+    if (future?.nextGameState && !isTerminal && !boardTransition && futureEchoAlpha > 0.01 && showFutureEcho) {
+      this.drawFutureEcho(ctx, state, future, futureEchoAlpha, now);
+    }
 
     // Hierarchy 3: Quiet, restrained ghost-ball trajectory preview behind blocks
     // Suppressed during committed volley, board transition, or terminal stage
@@ -736,6 +746,12 @@ export class CanvasRenderer {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('+1', renderX, renderY);
+
+        // Spatial contextual cue for pickup consequence
+        ctx.font = '700 9px Inter, system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = 'rgba(52, 211, 153, 0.85)';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('+1 BALL', renderX, renderY - radius - 3);
       } else {
         // Restrained standard token
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
@@ -778,6 +794,221 @@ export class CanvasRenderer {
       ctx.strokeStyle = 'rgba(0, 5, 12, 0.45)';
       ctx.lineWidth = 1;
       ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Hierarchy 4: Future Echo.
+   * Restrained, spatial projection of the authoritative nextGameState:
+   * - Surviving blocks get faint next-turn landing outlines one row lower (with subtle remaining HP).
+   * - Predicted-destroyed blocks receive NO echo (meaningful absence).
+   * - Deterministic incoming next-wave blocks appear as faint top-edge dashed silhouettes.
+   * - Authoritative next launcher X appears as a ghost launcher marker on the baseline.
+   * - Spatial danger alert badge appears directly at breach point if future fails.
+   * - Clean stage-clear cue if future wins (never contradictory danger).
+   */
+  private drawFutureEcho(
+    ctx: CanvasRenderingContext2D,
+    currentState: GameState,
+    future: FuturePreview,
+    echoAlpha: number,
+    _now: number
+  ): void {
+    const nextState = future.nextGameState;
+    if (!nextState || !nextState.blocks) return;
+
+    ctx.save();
+
+    const currentBlockMap = new Map<string, Block>(currentState.blocks.map((b) => [b.id, b]));
+    const dangerLineY = PROGRESSION_CONFIG.dangerLineY;
+    const isFutureFailed = future.stageStatus === 'failed';
+    const isFutureWon = future.stageStatus === 'won';
+
+    // 1. Next Launcher ghost marker on baseline
+    if (future.nextLauncher) {
+      this.drawFutureEchoLauncher(
+        ctx,
+        currentState.launcher,
+        future.nextLauncher,
+        future.ballPickupsCollected,
+        future.nextBallCount,
+        echoAlpha
+      );
+    }
+
+    // 2. If future clears stage (won), show a restrained spatial stage-clear cue
+    if (isFutureWon) {
+      ctx.fillStyle = `rgba(52, 211, 153, ${0.75 * echoAlpha})`;
+      ctx.font = '700 12px Inter, system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('STAGE CLEAR NEXT TURN', PHYSICS_CONFIG.canvasWidth / 2, 420);
+      ctx.restore();
+      return;
+    }
+
+    // 3. Render echoes for each block in nextGameState
+    let primaryBreachBlock: Block | null = null;
+
+    for (const b of nextState.blocks) {
+      if (!b.active || b.value <= 0) continue;
+
+      const isSurvivor = currentBlockMap.has(b.id);
+      const isBreaching = b.y + b.height >= dangerLineY;
+      const isNearDanger = !isBreaching && b.y + b.height >= dangerLineY - PROGRESSION_CONFIG.rowStep;
+
+      if (isBreaching && (!primaryBreachBlock || b.y + b.height > primaryBreachBlock.y + primaryBreachBlock.height)) {
+        primaryBreachBlock = b;
+      }
+
+      ctx.save();
+      const radius = 6;
+      const centerX = b.x + b.width / 2;
+      const centerY = b.y + b.height / 2;
+
+      if (isSurvivor) {
+        // A: Surviving-block landing echo
+        const currentBlock = currentBlockMap.get(b.id)!;
+
+        // Downward offset cue connecting current survivor to its landing spot
+        if (echoAlpha > 0.6) {
+          ctx.strokeStyle = `rgba(95, 210, 255, ${0.12 * echoAlpha})`;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 3]);
+          ctx.beginPath();
+          ctx.moveTo(centerX, currentBlock.y + currentBlock.height);
+          ctx.lineTo(centerX, b.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Color & stroke based on danger proximity
+        if (isBreaching) {
+          ctx.strokeStyle = `rgba(239, 68, 68, ${0.75 * echoAlpha})`;
+          ctx.fillStyle = `rgba(239, 68, 68, ${0.08 * echoAlpha})`;
+          ctx.lineWidth = 1.6;
+        } else if (isNearDanger) {
+          ctx.strokeStyle = `rgba(245, 158, 11, ${0.45 * echoAlpha})`;
+          ctx.fillStyle = `rgba(245, 158, 11, ${0.05 * echoAlpha})`;
+          ctx.lineWidth = 1.2;
+        } else {
+          ctx.strokeStyle = `rgba(95, 210, 255, ${0.25 * echoAlpha})`;
+          ctx.fillStyle = `rgba(15, 23, 42, ${0.28 * echoAlpha})`;
+          ctx.lineWidth = 1.0;
+        }
+
+        this.fillAndStrokeRoundedRect(ctx, b.x, b.y, b.width, b.height, radius);
+
+        // Subtly render remaining HP inside the echo
+        ctx.fillStyle = isBreaching
+          ? `rgba(239, 68, 68, ${0.85 * echoAlpha})`
+          : (isNearDanger ? `rgba(245, 158, 11, ${0.65 * echoAlpha})` : `rgba(148, 163, 184, ${0.45 * echoAlpha})`);
+        ctx.font = '600 12px Inter, system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(b.value), centerX, centerY);
+
+      } else {
+        // C: Incoming next wave block echo (generated top-row blocks)
+        ctx.strokeStyle = `rgba(148, 163, 184, ${0.25 * echoAlpha})`;
+        ctx.fillStyle = `rgba(30, 41, 59, ${0.20 * echoAlpha})`;
+        ctx.lineWidth = 1.0;
+        ctx.setLineDash([4, 4]);
+
+        this.fillAndStrokeRoundedRect(ctx, b.x, b.y, b.width, b.height, radius);
+        ctx.setLineDash([]);
+
+        // Top-edge accent bar distinguishing incoming wave pressure
+        ctx.strokeStyle = `rgba(148, 163, 184, ${0.45 * echoAlpha})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(b.x + radius, b.y);
+        ctx.lineTo(b.x + b.width - radius, b.y);
+        ctx.stroke();
+
+        // Subtly render incoming HP
+        ctx.fillStyle = `rgba(148, 163, 184, ${0.35 * echoAlpha})`;
+        ctx.font = '600 11px Inter, system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(b.value), centerX, centerY);
+      }
+
+      ctx.restore();
+    }
+
+    // F: Spatial danger warning if future results in failure
+    if (isFutureFailed && primaryBreachBlock) {
+      const badgeX = primaryBreachBlock.x + primaryBreachBlock.width / 2;
+      const badgeY = Math.min(dangerLineY + 20, primaryBreachBlock.y + primaryBreachBlock.height + 14);
+      ctx.save();
+      ctx.fillStyle = `rgba(239, 68, 68, ${0.9 * echoAlpha})`;
+      ctx.font = '800 11px Inter, system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('DANGER', badgeX, badgeY);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  private drawFutureEchoLauncher(
+    ctx: CanvasRenderingContext2D,
+    currentLauncher: Launcher,
+    nextLauncher: Launcher,
+    pickupsCollected: number,
+    _nextBallCount: number,
+    echoAlpha: number
+  ): void {
+    ctx.save();
+    const nx = nextLauncher.x;
+    const ny = nextLauncher.y;
+    const hasRelocated = Math.abs(nx - currentLauncher.x) > 3;
+
+    // Baseline connection dash if return X relocated
+    if (hasRelocated) {
+      ctx.strokeStyle = `rgba(95, 210, 255, ${0.2 * echoAlpha})`;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.moveTo(currentLauncher.x, currentLauncher.y);
+      ctx.lineTo(nx, ny);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Ghost launcher outer dashed ring
+    ctx.strokeStyle = `rgba(95, 210, 255, ${0.55 * echoAlpha})`;
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(nx, ny, 7, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Ghost launcher core dot
+    ctx.fillStyle = `rgba(95, 210, 255, ${0.45 * echoAlpha})`;
+    ctx.beginPath();
+    ctx.arc(nx, ny, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Restrained NEXT micro-label below baseline
+    ctx.fillStyle = `rgba(95, 210, 255, ${0.65 * echoAlpha})`;
+    ctx.font = '700 8px Inter, system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('NEXT', nx, ny + 11);
+
+    // Ball pickup consequence: subtle +1 indicator near next launcher
+    if (pickupsCollected > 0) {
+      ctx.fillStyle = `rgba(52, 211, 153, ${0.85 * echoAlpha})`;
+      ctx.font = '700 9px Inter, system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`+${pickupsCollected}`, nx + 10, ny - 2);
     }
 
     ctx.restore();
