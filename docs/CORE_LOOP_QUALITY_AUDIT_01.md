@@ -105,14 +105,15 @@ Danger line is authoritative and useful. Keep it as a gameplay boundary, but avo
 
 # Priority Order
 
-## P0 — semantic cleanup
-1. Remove player-facing HITS.
-2. Remove numeric angle from standard gameplay.
-3. Remove player-facing STABILITY for now.
-4. Keep DAMAGE + DESTROYED only as immediate summary.
+## P0 — semantic cleanup [COMPLETED — STRATEGIC CORE PASS 01]
+1. [DONE] Remove player-facing HITS.
+2. [DONE] Remove numeric angle from standard gameplay.
+3. [DONE] Remove player-facing STABILITY for now.
+4. [DONE] Keep DAMAGE + DESTROYED only as immediate summary.
 
-## P0 — strategic depth
-5. Add deterministic Ball Pickup / ball-count progression.
+## P0 — strategic depth [COMPLETED — STRATEGIC CORE PASS 01]
+5. [DONE] Add deterministic Ball Pickup / ball-count progression.
+   **Ball count is a persistent strategic resource. Deterministic +1 Ball pickups can increase the next-turn volley size.**
 
 ## P1 — unique product identity
 6. Design next-state preview language.

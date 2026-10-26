@@ -14,6 +14,8 @@
 - State carries independent `schemaVersion` (v1.1), `gameVersion`, and `physicsVersion`.
 - Canonical player aim domain = full upward hemisphere, 1°–179° (superseding earlier 1°–89° restriction).
 - The player must be able to inspect consequences before launch. Prediction is the product's core differentiator.
+- Ball count is a persistent strategic resource. Deterministic +1 Ball pickups can increase the next-turn volley size. Acquisition happens at most once per pickup without deflection.
+- HUD Semantics: HITS, numeric ANGLE readout, STABILITY %, and raw SCORE are removed from standard gameplay. Default HUD displays DAMAGE, DESTROYED, and contextual +BALL only when acquired.
 
 ## EDITABLE — expected iteration surface
 - Board descent visual transition duration (~180–260ms) and interpolation easing.
@@ -22,13 +24,12 @@
 - How prediction is visually encoded on trajectory/blocks.
 - Level geometry and content fixtures.
 - Gesture ergonomics, provided the final input angle is explicit and deterministic.
-- Which consequence metrics are player-facing.
 - Progression, modes, audio, polish.
 
 ## TOOLING-ONLY — do not expose as default player UI
 - Solver sweeps.
-- Angle laboratory charts.
+- Angle laboratory charts and numeric angle readout.
 - State fingerprints.
 - raw event streams.
 - collision/debug overlays.
-- objective scoring internals.
+- objective scoring internals and STABILITY % / robustness calculations.

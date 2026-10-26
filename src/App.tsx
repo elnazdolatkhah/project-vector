@@ -114,7 +114,7 @@ export const App: React.FC = () => {
   }, []);
 
   // Update future summary DOM text directly
-  const updateFutureDOM = useCallback((p: FuturePreview | null, r: number, calculating = false) => {
+  const updateFutureDOM = useCallback((p: FuturePreview | null, _r: number, calculating = false) => {
     if (!futureTextRef.current) return;
     if (stateRef.current.isGameOver) {
       futureTextRef.current.innerHTML = '<span class="text-rose-400 font-semibold tracking-wider">GAME OVER · DANGER REACHED</span>';
@@ -123,7 +123,14 @@ export const App: React.FC = () => {
     if (calculating || !p) {
       futureTextRef.current.innerHTML = '<span class="opacity-40">Calculating…</span>';
     } else {
-      futureTextRef.current.innerHTML = `<span>${p.hits} hits · ${p.destroyed} destroyed · ${p.damage} dmg · ${r}% stable</span>`;
+      const parts = [
+        `${p.damage} dmg`,
+        `${p.destroyed} destroyed`,
+      ];
+      if (p.ballPickupsCollected > 0) {
+        parts.push(`<span class="text-emerald-400 font-semibold">+${p.ballPickupsCollected} BALL${p.ballPickupsCollected > 1 ? 'S' : ''}</span>`);
+      }
+      futureTextRef.current.innerHTML = `<span>${parts.join(' · ')}</span>`;
     }
   }, []);
 
@@ -385,7 +392,7 @@ export const App: React.FC = () => {
       // Render the interpolated frame
       if (rendererRef.current) {
         rendererRef.current.render({
-          state: { ...stateRef.current, blocks: sim.blocks },
+          state: { ...stateRef.current, blocks: sim.blocks, pickups: sim.pickups },
           liveBalls: visualBalls,
           aimAngle: null,
           launcherRecoil: launcherRecoilRef.current,
@@ -407,6 +414,7 @@ export const App: React.FC = () => {
         // Volley End State: Authoritative turn completion
         const result = sim.result();
         const prevBlocks = stateRef.current.blocks;
+        const prevPickups = stateRef.current.pickups;
         const nextState = applyTurnResult(stateRef.current, result);
         setGameState(nextState);
         stateRef.current = nextState;
@@ -423,6 +431,8 @@ export const App: React.FC = () => {
         boardTransitionRef.current = {
           fromBlocks: prevBlocks,
           toBlocks: nextState.blocks,
+          fromPickups: prevPickups,
+          toPickups: nextState.pickups,
           startTime: transStart,
           duration: transDuration,
         };
@@ -617,15 +627,6 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Restrained angle readout, connected directly to aiming gesture */}
-      <div
-        ref={angleTextRef}
-        className="angle"
-        id="angleText"
-      >
-        45.0°
-      </div>
-
       {/* Quiet, non-dashboard future summary chip */}
       <div
         ref={futureTextRef}
@@ -645,7 +646,7 @@ export const App: React.FC = () => {
           ↻
         </button>
         <div className="turn-indicator">
-          TURN {gameState.turn} · SCORE {gameState.score}{gameState.isGameOver ? ' · FAILED' : ''}
+          TURN {gameState.turn}{gameState.isGameOver ? ' · FAILED' : ''}
         </div>
       </footer>
     </main>

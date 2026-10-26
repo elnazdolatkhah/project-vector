@@ -28,6 +28,8 @@ export const PROGRESSION_CONFIG = Object.freeze({
   startX: 34,
   blockWidth: 70,
   blockHeight: 56,
+  pickupRadius: 14,
+  pickupSpawnCadence: 3,
   transitionDurationMs: 220,
 });
 

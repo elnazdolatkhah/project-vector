@@ -285,8 +285,17 @@ Gate D — Game idea validation
 - verify that visible futures are understandable and meaningful
 - distinguish confusion caused by UI from actual strategic difficulty
 
-## 15. Current migration rule
-
 Visual/UI iteration is encouraged.
 
 Physics rules, state schema, solver semantics, angle domain, and the `simulateTurn()` contract are locked unless a failing test proves a defect or an explicit design decision supersedes them.
+
+## 16. Ball Count Economy and Pickups (Strategic Core Pass 01)
+
+**Ball count is a persistent strategic resource. Deterministic +1 Ball pickups can increase the next-turn volley size.**
+
+- **Data Representation**: Pickups are represented as `{ id, x, y, radius, active }` on `GameState`.
+- **Spawn Rules**: Deterministic top-row placement aligned to canonical corridors (empty columns) at configurable cadence (defaults to roughly 1 pickup every 2–4 rows). IDs are unique and stable (`pickup_r{rowIndex}_c{col}`).
+- **Acquisition**: Live balls pass through pickups without deflection or HP absorption. Intersecting an active pickup collects it at most once per volley.
+- **Persistence**: Collected pickups increment `GameState.balls.available` starting on the subsequent turn. The current volley does not retroactively gain balls.
+- **HUD Semantics**: HITS, numeric ANGLE, STABILITY %, and raw SCORE are removed from standard gameplay. Immediate summary exposes DAMAGE and DESTROYED; contextual summary displays `+BALL` only when a candidate future acquires a pickup.
+- **Parity**: Identical across gameplay, Future Preview, Solver, replay, and serialization.

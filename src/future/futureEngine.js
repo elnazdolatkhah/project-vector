@@ -13,6 +13,7 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
   const remainingHP = blockHP(result.finalBlocks);
   const remainingBlocks = result.finalBlocks.filter((b) => b.active).length;
   const nextGameState = applyTurnResult(gameState, result);
+  const ballPickupsCollected = result.ballPickupsCollected ?? result.collectedPickups?.length ?? 0;
   return {
     stateFingerprint: fingerprintGameState(gameState),
     physicsVersion: gameState.physicsVersion,
@@ -20,6 +21,8 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     hits: result.stats.hits,
     destroyed: result.stats.destroyed,
     damage: Math.max(0, initialHP - remainingHP),
+    ballPickupsCollected,
+    nextBallCount: nextGameState.balls.available,
     remainingHP,
     remainingBlocks,
     initialHP,

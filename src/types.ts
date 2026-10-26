@@ -18,13 +18,23 @@ export interface Launcher {
   y: number;
 }
 
+export interface BallPickup {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  active: boolean;
+}
+
 export interface Level {
   levelId: string;
   name: string;
   rowOriginY?: number;
+  pickupCadence?: number;
   launcher: Launcher;
   ballCount: number;
   blocks: Block[];
+  pickups?: BallPickup[];
 }
 
 export interface GameState {
@@ -38,7 +48,9 @@ export interface GameState {
   balls: { available: number };
   launcher: Launcher;
   blocks: Block[];
+  pickups?: BallPickup[];
   rowOriginY?: number;
+  pickupCadence?: number;
   seed?: number;
   nextRowIndex?: number;
   isGameOver?: boolean;
@@ -60,6 +72,7 @@ export interface SimulationStats {
   hits: number;
   destroyed: number;
   ballsExited: number;
+  ballPickupsCollected?: number;
 }
 
 export interface SimulationEvent {
@@ -67,11 +80,16 @@ export interface SimulationEvent {
   type: string;
   ballId?: string;
   blockId?: string;
+  pickupId?: string;
+  x?: number;
 }
 
 export interface SimulationResult {
   angleDeg: number;
   finalBlocks: Block[];
+  finalPickups?: BallPickup[];
+  collectedPickups?: string[];
+  ballPickupsCollected?: number;
   stats: SimulationStats;
   trajectories?: Record<string, Vector2D[]> | null;
   events: SimulationEvent[];
@@ -88,6 +106,8 @@ export interface FuturePreview {
   hits: number;
   destroyed: number;
   damage: number;
+  ballPickupsCollected: number;
+  nextBallCount: number;
   remainingHP: number;
   remainingBlocks: number;
   initialHP: number;

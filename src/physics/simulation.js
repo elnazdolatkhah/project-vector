@@ -19,6 +19,10 @@ export class Simulation {
     this.time = 0;
     this.finished = false;
     this.blocks = gameState.blocks.map((b) => ({ ...b }));
+    this.pickups = Array.isArray(gameState.pickups)
+      ? gameState.pickups.map((p) => ({ ...p, active: Boolean(p.active) }))
+      : [];
+    this.collectedPickupIds = new Set();
     this.launcher = { ...gameState.launcher };
     this.angleDeg = angleDeg;
 
@@ -40,7 +44,7 @@ export class Simulation {
       active: false,
     }));
 
-    this.stats = { hits: 0, destroyed: 0, ballsExited: 0 };
+    this.stats = { hits: 0, destroyed: 0, ballsExited: 0, ballPickupsCollected: 0 };
     this.firstExitX = null;
     this.trajectories = record ? {} : null;
     this.events = [];
@@ -101,7 +105,10 @@ export class Simulation {
     return {
       angleDeg: this.angleDeg,
       finalBlocks: this.blocks.map((b) => ({ ...b })),
-      stats: { ...this.stats },
+      finalPickups: this.pickups.map((p) => ({ ...p })),
+      collectedPickups: Array.from(this.collectedPickupIds),
+      ballPickupsCollected: this.collectedPickupIds.size,
+      stats: { ...this.stats, ballPickupsCollected: this.collectedPickupIds.size },
       trajectories: this.trajectories,
       events: this.events.map((e) => ({ ...e })),
       score: this.stats.hits + this.stats.destroyed * 3,
@@ -114,6 +121,73 @@ export class Simulation {
     };
   }
 
+  _collectPickupsAlongSegment(P0, D, tPhys, ball) {
+    if (!this.pickups || this.pickups.length === 0) return;
+
+    const a = D.x * D.x + D.y * D.y;
+    const candidates = [];
+
+    for (const pickup of this.pickups) {
+      if (!pickup.active || this.collectedPickupIds.has(pickup.id)) continue;
+      const pickupRadius = pickup.radius ?? 14;
+      const R = ball.radius + pickupRadius;
+      const deltaX = P0.x - pickup.x;
+      const deltaY = P0.y - pickup.y;
+      const c = deltaX * deltaX + deltaY * deltaY - R * R;
+
+      if (c <= 0) {
+        // Ball is already intersecting/touching pickup at t = 0
+        candidates.push({ pickup, tContact: 0 });
+        continue;
+      }
+
+      if (a < 1e-12) {
+        // Stationary ball not touching pickup
+        continue;
+      }
+
+      const b = 2 * (deltaX * D.x + deltaY * D.y);
+      const disc = b * b - 4 * a * c;
+
+      if (disc < 0) {
+        // Trajectory ray does not intersect pickup circle
+        continue;
+      }
+
+      const sqrtDisc = Math.sqrt(disc);
+      const t1 = (-b - sqrtDisc) / (2 * a);
+      const t2 = (-b + sqrtDisc) / (2 * a);
+
+      // Overlap with traveled interval [0, tPhys] requires entry before/at physical collision
+      // and exit after/at start of interval
+      if (t1 <= tPhys + 1e-9 && t2 >= 0) {
+        const tContact = Math.max(0, t1);
+        if (tContact <= tPhys + 1e-9) {
+          candidates.push({ pickup, tContact });
+        }
+      }
+    }
+
+    if (candidates.length === 0) return;
+
+    // Sort chronologically by contact time along traveled segment; tie-break deterministically by ID
+    candidates.sort((pA, pB) => pA.tContact - pB.tContact || pA.pickup.id.localeCompare(pB.pickup.id));
+
+    for (const { pickup } of candidates) {
+      if (!this.collectedPickupIds.has(pickup.id)) {
+        pickup.active = false;
+        this.collectedPickupIds.add(pickup.id);
+        this.stats.ballPickupsCollected = this.collectedPickupIds.size;
+        this.events.push({
+          t: round6(this.time),
+          type: 'PickupCollected',
+          ballId: ball.id,
+          pickupId: pickup.id,
+        });
+      }
+    }
+  }
+
   _advanceBall(ball) {
     const cfg = this.config;
     let remainingFrac = 1;
@@ -123,6 +197,10 @@ export class Simulation {
       const P0 = { x: ball.x, y: ball.y };
       const D = { x: ball.vx * remainingFrac, y: ball.vy * remainingFrac };
       const hit = this._earliestCollision(P0, D, ball.radius);
+      const tPhys = hit ? hit.t : 1;
+
+      // 1. Consider pickup intersections only along the portion the ball actually reaches before physical collision
+      this._collectPickupsAlongSegment(P0, D, tPhys, ball);
 
       if (!hit) {
         ball.x += D.x;
@@ -130,6 +208,7 @@ export class Simulation {
         break;
       }
 
+      // Ball advances to exact physical collision point
       ball.x = P0.x + D.x * hit.t;
       ball.y = P0.y + D.y * hit.t;
       remainingFrac *= 1 - hit.t;

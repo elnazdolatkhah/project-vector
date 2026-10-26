@@ -16,10 +16,18 @@ Each committed volley advances the game state deterministically:
 1. Volley shot consequences resolve; destroyed blocks do not descend and are removed.
 2. The first bottom exit determines next-turn launcher X.
 3. All surviving active blocks descend by exactly one row-step (`ROW_STEP = 68`).
-4. A deterministic top row is generated at `TOP_ROW_Y = 220` with stable IDs (`gen_r{nextRowIndex}_c{col}`) and deterministic HP.
+4. A deterministic top row is generated at canonical `rowOriginY` with stable IDs (`gen_r{nextRowIndex}_c{col}`) and deterministic HP.
 5. Danger line evaluation: If any active block's bottom reaches or crosses `DANGER_LINE_Y = 1060` (`block.y + block.height >= 1060`), the authoritative status becomes terminal (`isGameOver: true`), blocking further shots.
 6. The full authoritative future of a shot includes the next board state (`nextGameState`, `isGameOver`), derived by `FuturePreview` and `Solver` using the identical `applyTurnResult()` pipeline.
 7. Presentation visually interpolates block descent and top row entrance over 220ms, while authoritative state is updated immediately.
+
+## Strategic Core Pass 01 — Ball Economy and HUD Cleanup
+**Ball count is a persistent strategic resource. Deterministic +1 Ball pickups can increase the next-turn volley size.**
+1. **Semantic HUD Cleanup**: HITS, numeric ANGLE, STABILITY %, and raw SCORE were removed from standard gameplay. Immediate consequence displays DAMAGE and DESTROYED; contextual summary displays +BALL only when acquired.
+2. **Deterministic Pickups**: Generated in empty column corridors of newly spawned rows based purely on GameState at configurable cadence.
+3. **Collision & Acquisition**: Live balls pass through pickups without deflection or absorbing damage. Collected at most once per volley.
+4. **Persistent Effect**: Each collected pickup increments `GameState.balls.available` starting on the subsequent turn.
+5. **Exact Parity**: Gameplay, Future Preview, Solver, replay, and serialization are 100% identical.
 
 ## Case-study status
 The dense level arrangements in `src/levels/levels.js` are migration fixtures inspired by the mobile screen-density lesson from Bricks Breaker Quest. They are not claimed as final level design and should be replaced/validated later.

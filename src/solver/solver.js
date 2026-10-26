@@ -20,11 +20,14 @@ export function solve(gameState, {
     const angleDeg = Math.round(angle * 1000) / 1000;
     const result = simulateTurn(gameState, angleDeg, { record: false });
     const nextGameState = applyTurnResult(gameState, result);
+    const ballPickupsCollected = result.ballPickupsCollected ?? result.collectedPickups?.length ?? 0;
     candidates.push({
       angleDeg,
       objective,
       score: evaluateObjective(result, objective),
       stats: result.stats,
+      ballPickupsCollected,
+      nextBallCount: nextGameState.balls.available,
       nextLauncher: result.nextLauncher,
       nextGameState,
       isGameOver: nextGameState.isGameOver,

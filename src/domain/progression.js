@@ -60,6 +60,50 @@ export function generateTopRow(state) {
 }
 
 /**
+ * Generates deterministic +1 Ball pickups for the newly generated top row.
+ * Cadence: defaults to state.pickupCadence or PROGRESSION_CONFIG.pickupSpawnCadence.
+ * A pickup spawns when (nextRowIndex % effectiveCadence === 0).
+ * Placed deterministically in an open corridor (empty column) of the generated row,
+ * centered at (x, y) with unique ID 'pickup_r{nextRowIndex}_c{col}'.
+ */
+export function generateTopRowPickups(state, { cadence = null } = {}) {
+  const seed = Number.isInteger(state?.seed) ? state.seed : 1;
+  const nextRowIndex = Number.isInteger(state?.nextRowIndex) ? state.nextRowIndex : 1;
+  const effectiveCadence = cadence ?? state?.pickupCadence ?? PROGRESSION_CONFIG.pickupSpawnCadence ?? 3;
+
+  if (effectiveCadence <= 0 || nextRowIndex % effectiveCadence !== 0) {
+    return [];
+  }
+
+  const rowOriginY = typeof state?.rowOriginY === 'number' && Number.isFinite(state.rowOriginY)
+    ? state.rowOriginY
+    : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
+
+  const patternIndex = Math.abs((seed * 17 + nextRowIndex * 13) % ROW_PATTERNS.length);
+  const blockCols = ROW_PATTERNS[patternIndex];
+  const emptyCols = [0, 1, 2, 3, 4, 5, 6, 7].filter((c) => !blockCols.includes(c));
+
+  const chosenCol = emptyCols.length > 0
+    ? emptyCols[Math.abs((seed * 31 + nextRowIndex * 7) % emptyCols.length)]
+    : (nextRowIndex % 8);
+
+  const id = `pickup_r${nextRowIndex}_c${chosenCol}`;
+  const x = PROGRESSION_CONFIG.startX + chosenCol * PROGRESSION_CONFIG.columnSpacing + PROGRESSION_CONFIG.blockWidth / 2;
+  const y = rowOriginY + PROGRESSION_CONFIG.blockHeight / 2;
+  const radius = PROGRESSION_CONFIG.pickupRadius ?? 14;
+
+  return [
+    {
+      id,
+      x,
+      y,
+      radius,
+      active: true,
+    },
+  ];
+}
+
+/**
  * Evaluates whether any active block has reached or crossed the danger line.
  * Rule: block.y + block.height >= dangerLineY for any active block with value > 0.
  */
@@ -83,10 +127,12 @@ export function checkDangerLineFailure(blocks, dangerLineY = PROGRESSION_CONFIG.
  * 1. Filter surviving blocks (destroyed blocks do not descend).
  * 2. Next launcher X determined from first bottom exit.
  * 3. Surviving blocks descend by exactly one ROW_STEP (68 units).
- * 4. Deterministic new row generated at TOP_ROW_Y (220 units).
+ * 4. Deterministic new row generated at canonical rowOriginY.
  * 5. Danger line failure evaluation (block.y + block.height >= DANGER_LINE_Y).
- * 6. Turn increment and score accumulation.
- * 7. Canonical validation and state serialization.
+ * 6. Pickup progression: collected pickups increase balls.available for subsequent turns;
+ *    uncollected pickups descend; new top-row pickups generated deterministically.
+ * 7. Turn increment and score accumulation.
+ * 8. Canonical validation and state serialization.
  */
 export function applyTurnResult(state, simulationResult) {
   if (state.isGameOver) {
@@ -106,7 +152,7 @@ export function applyTurnResult(state, simulationResult) {
     y: Math.round((b.y + PROGRESSION_CONFIG.rowStep) * 1e6) / 1e6,
   }));
 
-  // 3: Generate deterministic new top row
+  // 3: Generate deterministic new top row of blocks
   const newRow = generateTopRow(state);
 
   // 4: Combined board blocks
@@ -115,16 +161,37 @@ export function applyTurnResult(state, simulationResult) {
   // 5: Check danger line failure condition
   const isGameOver = checkDangerLineFailure(nextBlocks, PROGRESSION_CONFIG.dangerLineY);
 
+  // 6: Pickups & ball count progression
+  const collectedPickupIds = new Set(simulationResult?.collectedPickups || []);
+  const acquiredCount = simulationResult?.ballPickupsCollected ?? collectedPickupIds.size;
+
+  const currentPickups = Array.isArray(state.pickups) ? state.pickups : [];
+  const survivingPickups = currentPickups.filter((p) => p.active && !collectedPickupIds.has(p.id));
+  const descendedPickups = survivingPickups
+    .map((p) => ({
+      ...p,
+      y: Math.round((p.y + PROGRESSION_CONFIG.rowStep) * 1e6) / 1e6,
+    }))
+    .filter((p) => p.y < PROGRESSION_CONFIG.dangerLineY);
+
+  const newPickups = generateTopRowPickups(state);
+  const nextPickups = [...descendedPickups, ...newPickups];
+
   const nextTurn = state.turn + 1;
   const nextRowIndex = (state.nextRowIndex ?? 1) + 1;
   const nextScore = state.score + (simulationResult?.score || 0);
+  const nextBallsAvailable = state.balls.available + acquiredCount;
 
   const nextState = {
     ...state,
     turn: nextTurn,
     nextRowIndex,
     score: nextScore,
+    balls: {
+      available: nextBallsAvailable,
+    },
     blocks: nextBlocks,
+    pickups: nextPickups,
     launcher: {
       x: nextLauncherX,
       y: state.launcher.y,

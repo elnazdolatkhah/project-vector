@@ -1,5 +1,5 @@
 import { VERSION, PHYSICS_CONFIG, PROGRESSION_CONFIG } from '../config.js';
-import { applyTurnResult, generateTopRow, checkDangerLineFailure } from './progression.js';
+import { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure } from './progression.js';
 
 function finiteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -15,9 +15,24 @@ export function validateGameState(state) {
   if (!state.balls || !Number.isInteger(state.balls.available) || state.balls.available < 1) errors.push('balls.available must be an integer >= 1');
   if (!state.launcher || !finiteNumber(state.launcher.x) || !finiteNumber(state.launcher.y)) errors.push('launcher.x/y must be finite numbers');
   if (state.rowOriginY !== undefined && !finiteNumber(state.rowOriginY)) errors.push('rowOriginY must be a finite number');
+  if (state.pickupCadence !== undefined && (!Number.isInteger(state.pickupCadence) || state.pickupCadence < 1)) errors.push('pickupCadence must be an integer >= 1');
   if (state.seed !== undefined && !Number.isInteger(state.seed)) errors.push('seed must be an integer');
   if (state.nextRowIndex !== undefined && (!Number.isInteger(state.nextRowIndex) || state.nextRowIndex < 1)) errors.push('nextRowIndex must be an integer >= 1');
   if (state.isGameOver !== undefined && typeof state.isGameOver !== 'boolean') errors.push('isGameOver must be a boolean');
+
+  if (state.pickups !== undefined) {
+    if (!Array.isArray(state.pickups)) errors.push('pickups must be an array');
+    else {
+      const pids = new Set();
+      for (const [index, p] of state.pickups.entries()) {
+        if (!p.id || pids.has(p.id)) errors.push(`pickup[${index}].id must be unique`);
+        pids.add(p.id);
+        if (!finiteNumber(p.x) || !finiteNumber(p.y)) errors.push(`pickup[${index}].x/y must be finite numbers`);
+        if (p.radius !== undefined && (!finiteNumber(p.radius) || p.radius <= 0)) errors.push(`pickup[${index}].radius must be > 0`);
+        if (typeof p.active !== 'boolean') errors.push(`pickup[${index}].active must be boolean`);
+      }
+    }
+  }
 
   if (!Array.isArray(state.blocks)) errors.push('blocks must be an array');
   else {
@@ -40,6 +55,16 @@ export function createGameState(level) {
     ? level.rowOriginY
     : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
 
+  const pickups = Array.isArray(level.pickups)
+    ? level.pickups.map((p) => ({
+        id: p.id,
+        x: p.x,
+        y: p.y,
+        radius: p.radius ?? PROGRESSION_CONFIG.pickupRadius,
+        active: p.active !== false,
+      }))
+    : [];
+
   const state = {
     ...VERSION,
     levelId: level.levelId,
@@ -48,7 +73,9 @@ export function createGameState(level) {
     balls: { available: level.ballCount },
     launcher: { ...level.launcher },
     blocks: level.blocks.map((b) => ({ ...b })),
+    pickups,
     rowOriginY,
+    pickupCadence: Number.isInteger(level.pickupCadence) ? level.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(level.seed) ? level.seed : 1,
     nextRowIndex: 1,
     isGameOver: false,
@@ -65,6 +92,18 @@ export function canonicalizeGameState(state) {
     ? state.rowOriginY
     : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
 
+  const pickups = Array.isArray(state.pickups)
+    ? [...state.pickups]
+        .map((p) => ({
+          id: p.id,
+          x: p.x,
+          y: p.y,
+          radius: p.radius ?? PROGRESSION_CONFIG.pickupRadius,
+          active: Boolean(p.active),
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id))
+    : [];
+
   return {
     schemaVersion: state.schemaVersion,
     gameVersion: state.gameVersion,
@@ -77,7 +116,9 @@ export function canonicalizeGameState(state) {
     blocks: [...state.blocks]
       .map((b) => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height, value: b.value, active: b.active }))
       .sort((a, b) => a.id.localeCompare(b.id)),
+    pickups,
     rowOriginY,
+    pickupCadence: Number.isInteger(state.pickupCadence) ? state.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(state.seed) ? state.seed : 1,
     nextRowIndex: Number.isInteger(state.nextRowIndex) ? state.nextRowIndex : 1,
     isGameOver: Boolean(state.isGameOver),
@@ -112,5 +153,5 @@ export function clampLauncherX(x, config = PHYSICS_CONFIG) {
   return Math.round(clamped * 1e6) / 1e6;
 }
 
-export { applyTurnResult, generateTopRow, checkDangerLineFailure, PROGRESSION_CONFIG };
+export { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure, PROGRESSION_CONFIG };
 

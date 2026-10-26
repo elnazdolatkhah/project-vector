@@ -1,6 +1,6 @@
 import { PHYSICS_CONFIG, PROGRESSION_CONFIG } from '../config.js';
 import { fitWorld } from './viewport.js';
-import type { GameState, FuturePreview, Block, Launcher, Vector2D } from '../types.js';
+import type { GameState, FuturePreview, Block, BallPickup, Launcher, Vector2D } from '../types.js';
 
 export interface VisualBall {
   id: string;
@@ -34,6 +34,8 @@ export interface TrajectoryTransition {
 export interface BoardTransition {
   fromBlocks: Block[];
   toBlocks: Block[];
+  fromPickups?: BallPickup[];
+  toPickups?: BallPickup[];
   startTime: number;
   duration: number;
 }
@@ -123,6 +125,9 @@ export class CanvasRenderer {
 
     // Hierarchy 2: Blocks and their state changes with capped hit feedback & descent interpolation
     this.drawBlocks(ctx, state.blocks, future, hitEffects, boardTransition, now);
+
+    // Board pickups (+1 Ball tokens)
+    this.drawPickups(ctx, state.pickups, future, boardTransition, now);
 
     // Destruction exit animations (restrained micro-scale and fade)
     if (destructionEffects && destructionEffects.length > 0) {
@@ -629,6 +634,97 @@ export class CanvasRenderer {
     ctx.fillText(`×${ballCount}`, launcher.x + 16, launcher.y);
 
     ctx.restore();
+  }
+
+  private drawPickups(
+    ctx: CanvasRenderingContext2D,
+    pickups: BallPickup[] | undefined,
+    future: FuturePreview | null,
+    boardTransition: BoardTransition | null,
+    now: number
+  ): void {
+    if (!pickups || pickups.length === 0) return;
+
+    const fromMap = boardTransition?.fromPickups
+      ? new Map(boardTransition.fromPickups.map((p) => [p.id, p]))
+      : null;
+    let transitionProgress = 1.0;
+    let isTransitioning = false;
+
+    if (boardTransition && now - boardTransition.startTime < boardTransition.duration) {
+      isTransitioning = true;
+      transitionProgress = Math.min(1.0, (now - boardTransition.startTime) / boardTransition.duration);
+    }
+
+    const ease = 1 - Math.pow(1 - transitionProgress, 3);
+    const collectedSet = new Set(future?.result?.collectedPickups || []);
+
+    for (const pickup of pickups) {
+      if (!pickup.active) continue;
+
+      let renderX = pickup.x;
+      let renderY = pickup.y;
+      let opacity = 1.0;
+
+      if (isTransitioning) {
+        const from = fromMap?.get(pickup.id);
+        if (from) {
+          renderY = from.y + (pickup.y - from.y) * ease;
+        } else {
+          const startY = pickup.y - PROGRESSION_CONFIG.rowStep;
+          renderY = startY + (pickup.y - startY) * ease;
+          opacity = ease;
+        }
+      }
+
+      const willBeCollected = !isTransitioning && collectedSet.has(pickup.id);
+      const radius = pickup.radius ?? 14;
+
+      ctx.save();
+      if (opacity < 1.0) {
+        ctx.globalAlpha = opacity;
+      }
+
+      if (willBeCollected) {
+        // Highlighted candidate acquisition state: subtle emerald ring and bright +1
+        ctx.fillStyle = 'rgba(6, 78, 59, 0.45)';
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(renderX, renderY, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(renderX, renderY, radius - 3.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#6ee7b7';
+        ctx.font = '800 11px Inter, system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('+1', renderX, renderY);
+      } else {
+        // Restrained standard token
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.strokeStyle = 'rgba(95, 210, 255, 0.65)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(renderX, renderY, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '700 11px Inter, system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('+1', renderX, renderY);
+      }
+
+      ctx.restore();
+    }
   }
 
   /**
