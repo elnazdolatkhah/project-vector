@@ -8,9 +8,20 @@ function finiteNumber(value) {
 export function validateGameState(state) {
   const errors = [];
   if (!state || typeof state !== 'object') return { ok: false, errors: ['state must be an object'] };
-  if (state.schemaVersion !== VERSION.schemaVersion) errors.push(`schemaVersion must be ${VERSION.schemaVersion}`);
+  if (state.schemaVersion !== VERSION.schemaVersion && state.schemaVersion !== '1.1') {
+    errors.push(`schemaVersion must be ${VERSION.schemaVersion}`);
+  }
   if (state.physicsVersion !== VERSION.physicsVersion) errors.push(`physicsVersion must be ${VERSION.physicsVersion}`);
   if (!state.levelId) errors.push('levelId is required');
+  if (state.stageStatus !== undefined && !['active', 'won', 'failed'].includes(state.stageStatus)) {
+    errors.push("stageStatus must be 'active', 'won', or 'failed'");
+  }
+  if (state.totalWaves !== undefined && (!Number.isInteger(state.totalWaves) || state.totalWaves < 0)) {
+    errors.push('totalWaves must be an integer >= 0');
+  }
+  if (state.waveIndex !== undefined && (!Number.isInteger(state.waveIndex) || state.waveIndex < 0)) {
+    errors.push('waveIndex must be an integer >= 0');
+  }
   if (!Number.isInteger(state.turn) || state.turn < 1) errors.push('turn must be an integer >= 1');
   if (!state.balls || !Number.isInteger(state.balls.available) || state.balls.available < 1) errors.push('balls.available must be an integer >= 1');
   if (!state.launcher || !finiteNumber(state.launcher.x) || !finiteNumber(state.launcher.y)) errors.push('launcher.x/y must be finite numbers');
@@ -55,6 +66,20 @@ export function createGameState(level) {
     ? level.rowOriginY
     : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
 
+  const totalWaves = Number.isInteger(level.totalWaves) && level.totalWaves >= 0
+    ? level.totalWaves
+    : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+
+  const waveIndex = Number.isInteger(level.waveIndex) && level.waveIndex >= 0
+    ? level.waveIndex
+    : 0;
+
+  const stageStatus = level.stageStatus && ['active', 'won', 'failed'].includes(level.stageStatus)
+    ? level.stageStatus
+    : (level.isGameOver ? 'failed' : 'active');
+
+  const isGameOver = stageStatus === 'failed';
+
   const pickups = Array.isArray(level.pickups)
     ? level.pickups.map((p) => ({
         id: p.id,
@@ -68,8 +93,11 @@ export function createGameState(level) {
   const state = {
     ...VERSION,
     levelId: level.levelId,
-    turn: 1,
-    score: 0,
+    stageStatus,
+    turn: Number.isInteger(level.turn) && level.turn >= 1 ? level.turn : 1,
+    waveIndex,
+    totalWaves,
+    score: Number.isInteger(level.score) && level.score >= 0 ? level.score : 0,
     balls: { available: level.ballCount },
     launcher: { ...level.launcher },
     blocks: level.blocks.map((b) => ({ ...b })),
@@ -78,7 +106,7 @@ export function createGameState(level) {
     pickupCadence: Number.isInteger(level.pickupCadence) ? level.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(level.seed) ? level.seed : 1,
     nextRowIndex: 1,
-    isGameOver: false,
+    isGameOver,
   };
   const validation = validateGameState(state);
   if (!validation.ok) throw new Error(`Invalid initial GameState: ${validation.errors.join('; ')}`);
@@ -91,6 +119,11 @@ export function canonicalizeGameState(state) {
   const rowOriginY = finiteNumber(state.rowOriginY)
     ? state.rowOriginY
     : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
+
+  const stageStatus = state.stageStatus ?? (state.isGameOver ? 'failed' : 'active');
+  const totalWaves = Number.isInteger(state.totalWaves) ? state.totalWaves : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+  const waveIndex = Number.isInteger(state.waveIndex) ? state.waveIndex : 0;
+  const isGameOver = stageStatus === 'failed';
 
   const pickups = Array.isArray(state.pickups)
     ? [...state.pickups]
@@ -105,11 +138,15 @@ export function canonicalizeGameState(state) {
     : [];
 
   return {
-    schemaVersion: state.schemaVersion,
+    schemaVersion: VERSION.schemaVersion,
     gameVersion: state.gameVersion,
     physicsVersion: state.physicsVersion,
+    ...(state.migrationVersion ? { migrationVersion: state.migrationVersion } : {}),
     levelId: state.levelId,
+    stageStatus,
     turn: state.turn,
+    waveIndex,
+    totalWaves,
     score: state.score,
     balls: { available: state.balls.available },
     launcher: { x: state.launcher.x, y: state.launcher.y },
@@ -121,7 +158,7 @@ export function canonicalizeGameState(state) {
     pickupCadence: Number.isInteger(state.pickupCadence) ? state.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(state.seed) ? state.seed : 1,
     nextRowIndex: Number.isInteger(state.nextRowIndex) ? state.nextRowIndex : 1,
-    isGameOver: Boolean(state.isGameOver),
+    isGameOver,
   };
 }
 

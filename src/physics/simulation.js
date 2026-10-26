@@ -46,6 +46,7 @@ export class Simulation {
 
     this.stats = { hits: 0, destroyed: 0, ballsExited: 0, ballPickupsCollected: 0 };
     this.firstExitX = null;
+    this.timedOut = false;
     this.trajectories = record ? {} : null;
     this.events = [];
   }
@@ -77,6 +78,8 @@ export class Simulation {
 
     this.time += cfg.fixedDt;
     if (this.time > cfg.maxSimulationTime) {
+      this.timedOut = true;
+      this.firstExitX = null;
       for (const ball of this.balls) {
         ball.active = false;
         ball.spawned = true;
@@ -98,12 +101,15 @@ export class Simulation {
   }
 
   result() {
-    const nextLauncherX = this.firstExitX != null
-      ? clampLauncherX(this.firstExitX, this.config)
+    const firstExitX = this.timedOut ? null : this.firstExitX;
+    const nextLauncherX = firstExitX != null
+      ? clampLauncherX(firstExitX, this.config)
       : this.launcher.x;
 
     return {
       angleDeg: this.angleDeg,
+      timedOut: this.timedOut,
+      completed: !this.timedOut,
       finalBlocks: this.blocks.map((b) => ({ ...b })),
       finalPickups: this.pickups.map((p) => ({ ...p })),
       collectedPickups: Array.from(this.collectedPickupIds),
@@ -113,7 +119,7 @@ export class Simulation {
       events: this.events.map((e) => ({ ...e })),
       score: this.stats.hits + this.stats.destroyed * 3,
       elapsedTime: round6(this.time),
-      firstExitX: this.firstExitX,
+      firstExitX,
       nextLauncher: {
         x: nextLauncherX,
         y: this.launcher.y,

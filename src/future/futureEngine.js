@@ -18,6 +18,8 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     stateFingerprint: fingerprintGameState(gameState),
     physicsVersion: gameState.physicsVersion,
     angleDeg,
+    timedOut: Boolean(result.timedOut),
+    completed: Boolean(result.completed),
     hits: result.stats.hits,
     destroyed: result.stats.destroyed,
     damage: Math.max(0, initialHP - remainingHP),
@@ -32,6 +34,7 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     nextLauncher: result.nextLauncher,
     result,
     nextGameState,
+    stageStatus: nextGameState.stageStatus,
     isGameOver: nextGameState.isGameOver,
   };
 }

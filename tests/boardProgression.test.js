@@ -199,7 +199,7 @@ test('11: no failure when blocks remain above danger line', () => {
   assert.equal(nextState.isGameOver, false, 'must not trigger game over while blocks are above danger line');
 });
 
-test('12: full 1°–179° aiming still works after progression', () => {
+test('12: canonical 5°–175° aiming still works after progression', () => {
   let state = createGameState(LEVELS.L01);
   const result = simulateTurn(state, 60, { record: false });
   state = applyTurnResult(state, result);

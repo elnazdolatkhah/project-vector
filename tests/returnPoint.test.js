@@ -101,7 +101,7 @@ test('7: launcher X is clamped correctly near left and right boundaries', () => 
   assert.equal(clampLauncherX(maxValid + 5), maxValid, 'values past right wall clamp to maxValid');
 });
 
-test('8: full 1°–179° aiming still works from a non-centered launcher', () => {
+test('8: canonical 5°–175° aiming still works from a non-centered launcher', () => {
   const offCenterState = createGameState({
     levelId: 'OFF-CENTER',
     launcher: { x: 100, y: 1180 }, // Situated close to left boundary

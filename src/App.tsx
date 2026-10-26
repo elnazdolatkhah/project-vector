@@ -89,7 +89,7 @@ export const App: React.FC = () => {
       }
     }
 
-    const suppressAimAndFuture = runningRef.current || transitioningRef.current || Boolean(stateRef.current.isGameOver);
+    const suppressAimAndFuture = runningRef.current || transitioningRef.current || stateRef.current.stageStatus !== 'active';
 
     rendererRef.current.render({
       state: stateRef.current,
@@ -116,8 +116,12 @@ export const App: React.FC = () => {
   // Update future summary DOM text directly
   const updateFutureDOM = useCallback((p: FuturePreview | null, _r: number, calculating = false) => {
     if (!futureTextRef.current) return;
-    if (stateRef.current.isGameOver) {
+    if (stateRef.current.stageStatus === 'failed') {
       futureTextRef.current.innerHTML = '<span class="text-rose-400 font-semibold tracking-wider">GAME OVER · DANGER REACHED</span>';
+      return;
+    }
+    if (stateRef.current.stageStatus === 'won') {
+      futureTextRef.current.innerHTML = '<span class="text-amber-400 font-semibold tracking-wider">STAGE CLEAR</span>';
       return;
     }
     if (calculating || !p) {
@@ -136,7 +140,7 @@ export const App: React.FC = () => {
 
   // Authoritative future calculation (decoupled from direct finger tracking)
   const computeAuthoritativeFuture = useCallback((stateToPreview: GameState, targetAngle: number) => {
-    if (runningRef.current || transitioningRef.current || stateToPreview.isGameOver) return;
+    if (runningRef.current || transitioningRef.current || stateToPreview.stageStatus !== 'active') return;
     try {
       const prevFuture = futureRef.current;
       const p = previewFuture(stateToPreview, targetAngle, { record: true }) as FuturePreview;
@@ -225,7 +229,7 @@ export const App: React.FC = () => {
     scheduleFutureRecomputation(angleRef.current, true);
   }, [scheduleFutureRecomputation]);
 
-  // Map pointer client coordinates to launch angle within canonical 1°–179° range
+  // Map pointer client coordinates to launch angle within canonical 5°–175° range
   const pointerToAngle = useCallback((clientX: number, clientY: number): number => {
     const canvas = canvasRef.current;
     if (!canvas) return 45;
@@ -413,6 +417,20 @@ export const App: React.FC = () => {
       } else {
         // Volley End State: Authoritative turn completion
         const result = sim.result();
+
+        if (result.timedOut) {
+          // Simulation timed out: abort progression and restore ready state without advancing board
+          setIsRunning(false);
+          runningRef.current = false;
+          hitEffectsRef.current.clear();
+          destructionEffectsRef.current = [];
+          launcherRecoilRef.current = null;
+          readyFadeStartRef.current = performance.now();
+          scheduleFutureRecomputation(angleRef.current, true);
+          renderCurrent();
+          return;
+        }
+
         const prevBlocks = stateRef.current.blocks;
         const prevPickups = stateRef.current.pickups;
         const nextState = applyTurnResult(stateRef.current, result);
@@ -452,7 +470,7 @@ export const App: React.FC = () => {
             setIsTransitioning(false);
             transitioningRef.current = false;
 
-            if (!nextState.isGameOver) {
+            if (nextState.stageStatus === 'active') {
               readyFadeStartRef.current = performance.now();
               scheduleFutureRecomputation(angleRef.current, true);
             } else {
@@ -471,8 +489,10 @@ export const App: React.FC = () => {
   }, [renderCurrent, scheduleFutureRecomputation, updateFutureDOM]);
 
   // Direct, immediate pointer interaction handlers (0 latency)
+  const isTerminalState = () => stateRef.current.stageStatus !== 'active';
+
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
+    if (runningRef.current || transitioningRef.current || isTerminalState()) return;
 
     if (!hasInteracted) {
       setHasInteracted(true);
@@ -505,7 +525,7 @@ export const App: React.FC = () => {
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
+    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
 
     const newAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = newAngle;
@@ -524,7 +544,7 @@ export const App: React.FC = () => {
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || stateRef.current.isGameOver) return;
+    if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
 
     const finalAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = finalAngle;
@@ -646,7 +666,13 @@ export const App: React.FC = () => {
           ↻
         </button>
         <div className="turn-indicator">
-          TURN {gameState.turn}{gameState.isGameOver ? ' · FAILED' : ''}
+          TURN {gameState.turn}
+          {gameState.stageStatus === 'won'
+            ? ' · STAGE CLEAR'
+            : (gameState.stageStatus === 'failed' ? ' · FAILED' : '')}
+          {gameState.stageStatus === 'active' && gameState.totalWaves > 0
+            ? ` · WAVE ${Math.min(gameState.waveIndex + 1, gameState.totalWaves)}/${gameState.totalWaves}`
+            : ''}
         </div>
       </footer>
     </main>

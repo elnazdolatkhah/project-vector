@@ -135,8 +135,8 @@ export function checkDangerLineFailure(blocks, dangerLineY = PROGRESSION_CONFIG.
  * 8. Canonical validation and state serialization.
  */
 export function applyTurnResult(state, simulationResult) {
-  if (state.isGameOver) {
-    // Terminal state cannot progress further
+  if (state.stageStatus !== 'active' || simulationResult?.timedOut || simulationResult?.completed === false) {
+    // Terminal state or timed-out simulation cannot progress board
     return canonicalizeGameState(state);
   }
 
@@ -152,14 +152,31 @@ export function applyTurnResult(state, simulationResult) {
     y: Math.round((b.y + PROGRESSION_CONFIG.rowStep) * 1e6) / 1e6,
   }));
 
-  // 3: Generate deterministic new top row of blocks
-  const newRow = generateTopRow(state);
+  // Finite wave progression check
+  const totalWaves = Number.isInteger(state.totalWaves)
+    ? state.totalWaves
+    : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+  const currentWaveIndex = Number.isInteger(state.waveIndex) ? state.waveIndex : 0;
+  const wavesRemaining = Math.max(0, totalWaves - currentWaveIndex);
+
+  let newRow = [];
+  let newPickups = [];
+  let nextWaveIndex = currentWaveIndex;
+  let nextRowIndex = state.nextRowIndex ?? 1;
+
+  if (wavesRemaining > 0) {
+    // 3: Generate deterministic new top row of blocks for incoming wave
+    newRow = generateTopRow(state);
+    newPickups = generateTopRowPickups(state);
+    nextWaveIndex = currentWaveIndex + 1;
+    nextRowIndex += 1;
+  }
 
   // 4: Combined board blocks
   const nextBlocks = [...descendedBlocks, ...newRow];
 
   // 5: Check danger line failure condition
-  const isGameOver = checkDangerLineFailure(nextBlocks, PROGRESSION_CONFIG.dangerLineY);
+  const breachedDanger = checkDangerLineFailure(nextBlocks, PROGRESSION_CONFIG.dangerLineY);
 
   // 6: Pickups & ball count progression
   const collectedPickupIds = new Set(simulationResult?.collectedPickups || []);
@@ -174,17 +191,30 @@ export function applyTurnResult(state, simulationResult) {
     }))
     .filter((p) => p.y < PROGRESSION_CONFIG.dangerLineY);
 
-  const newPickups = generateTopRowPickups(state);
   const nextPickups = [...descendedPickups, ...newPickups];
 
+  // 7: Determine authoritative stage status
+  let stageStatus = 'active';
+  if (breachedDanger) {
+    stageStatus = 'failed';
+  } else {
+    const activeBlocksCount = nextBlocks.filter((b) => b.active && b.value > 0).length;
+    if (nextWaveIndex >= totalWaves && activeBlocksCount === 0) {
+      stageStatus = 'won';
+    }
+  }
+
+  const isGameOver = stageStatus === 'failed';
   const nextTurn = state.turn + 1;
-  const nextRowIndex = (state.nextRowIndex ?? 1) + 1;
   const nextScore = state.score + (simulationResult?.score || 0);
   const nextBallsAvailable = state.balls.available + acquiredCount;
 
   const nextState = {
     ...state,
+    stageStatus,
     turn: nextTurn,
+    waveIndex: nextWaveIndex,
+    totalWaves,
     nextRowIndex,
     score: nextScore,
     balls: {

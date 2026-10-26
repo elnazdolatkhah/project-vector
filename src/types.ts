@@ -26,10 +26,13 @@ export interface BallPickup {
   active: boolean;
 }
 
+export type StageStatus = 'active' | 'won' | 'failed';
+
 export interface Level {
   levelId: string;
   name: string;
   rowOriginY?: number;
+  totalWaves?: number;
   pickupCadence?: number;
   launcher: Launcher;
   ballCount: number;
@@ -43,7 +46,10 @@ export interface GameState {
   physicsVersion: string;
   migrationVersion?: string;
   levelId: string;
+  stageStatus: StageStatus;
   turn: number;
+  waveIndex: number;
+  totalWaves: number;
   score: number;
   balls: { available: number };
   launcher: Launcher;
@@ -86,6 +92,8 @@ export interface SimulationEvent {
 
 export interface SimulationResult {
   angleDeg: number;
+  timedOut?: boolean;
+  completed?: boolean;
   finalBlocks: Block[];
   finalPickups?: BallPickup[];
   collectedPickups?: string[];
@@ -103,6 +111,8 @@ export interface FuturePreview {
   stateFingerprint: string;
   physicsVersion: string;
   angleDeg: number;
+  timedOut?: boolean;
+  completed?: boolean;
   hits: number;
   destroyed: number;
   damage: number;
@@ -117,6 +127,7 @@ export interface FuturePreview {
   nextLauncher?: Launcher;
   result: SimulationResult;
   nextGameState: GameState;
+  stageStatus: StageStatus;
   isGameOver: boolean;
 }
 

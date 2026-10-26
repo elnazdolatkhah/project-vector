@@ -110,16 +110,19 @@ export class CanvasRenderer {
     this.drawBoundary(ctx);
 
     // Danger line threshold boundary
-    this.drawDangerLine(ctx, Boolean(state.isGameOver));
+    const isFailed = state.stageStatus === 'failed';
+    const isWon = state.stageStatus === 'won';
+    const isTerminal = state.stageStatus !== 'active';
+    this.drawDangerLine(ctx, isFailed);
 
     // Hierarchy 3: Quiet, restrained ghost-ball trajectory preview behind blocks
-    // Suppressed during committed volley, board transition, or game-over
-    if (future?.trajectories && !state.isGameOver && !boardTransition) {
+    // Suppressed during committed volley, board transition, or terminal stage
+    if (future?.trajectories && !isTerminal && !boardTransition) {
       this.drawTrajectoryPreview(ctx, future.trajectories, trajectoryTransition, readyFadeAlpha, now);
     }
 
     // Direct aim guide from launcher
-    if (aimAngle != null && !state.isGameOver && !boardTransition) {
+    if (aimAngle != null && !isTerminal && !boardTransition) {
       this.drawAim(ctx, state.launcher, aimAngle, readyFadeAlpha);
     }
 
@@ -147,8 +150,10 @@ export class CanvasRenderer {
       this.drawBalls(ctx, liveBalls);
     }
 
-    // Failure presentation if terminal danger reached
-    if (state.isGameOver) {
+    // Terminal stage presentations
+    if (isWon) {
+      this.drawVictoryOverlay(ctx);
+    } else if (isFailed) {
       this.drawFailureOverlay(ctx);
     }
 
@@ -186,11 +191,11 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  private drawDangerLine(ctx: CanvasRenderingContext2D, isGameOver = false): void {
+  private drawDangerLine(ctx: CanvasRenderingContext2D, isFailed = false): void {
     ctx.save();
     const y = PROGRESSION_CONFIG.dangerLineY;
-    ctx.strokeStyle = isGameOver ? 'rgba(239, 68, 68, 0.85)' : 'rgba(239, 68, 68, 0.25)';
-    ctx.lineWidth = isGameOver ? 2.5 : 1.5;
+    ctx.strokeStyle = isFailed ? 'rgba(239, 68, 68, 0.85)' : 'rgba(239, 68, 68, 0.25)';
+    ctx.lineWidth = isFailed ? 2.5 : 1.5;
     ctx.setLineDash([8, 6]);
     ctx.beginPath();
     ctx.moveTo(8, y);
@@ -198,7 +203,7 @@ export class CanvasRenderer {
     ctx.stroke();
 
     ctx.setLineDash([]);
-    ctx.fillStyle = isGameOver ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.38)';
+    ctx.fillStyle = isFailed ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.38)';
     ctx.font = '700 11px Inter, system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
@@ -232,6 +237,31 @@ export class CanvasRenderer {
     ctx.fillStyle = '#94a3b8';
     ctx.font = '600 11px Inter, system-ui, -apple-system, sans-serif';
     ctx.fillText('PRESS ↻ TO RESTART LEVEL', PHYSICS_CONFIG.canvasWidth / 2, badgeY + 36);
+
+    ctx.restore();
+  }
+
+  private drawVictoryOverlay(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+    const badgeW = 280;
+    const badgeH = 54;
+    const badgeX = (PHYSICS_CONFIG.canvasWidth - badgeW) / 2;
+    const badgeY = 560;
+
+    ctx.fillStyle = 'rgba(15, 17, 26, 0.94)';
+    ctx.strokeStyle = 'rgba(52, 211, 153, 0.85)';
+    ctx.lineWidth = 1.5;
+    this.fillAndStrokeRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 8);
+
+    ctx.fillStyle = '#34d399';
+    ctx.font = '800 14px Inter, system-ui, -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('STAGE CLEAR', PHYSICS_CONFIG.canvasWidth / 2, badgeY + 19);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 11px Inter, system-ui, -apple-system, sans-serif';
+    ctx.fillText('ALL WAVES COMPLETED', PHYSICS_CONFIG.canvasWidth / 2, badgeY + 36);
 
     ctx.restore();
   }

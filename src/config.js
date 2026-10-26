@@ -6,15 +6,15 @@ export const PHYSICS_CONFIG = Object.freeze({
   gravity: 0,
   fixedDt: 1 / 60,
   spawnInterval: 0.08,
-  maxSimulationTime: 30,
+  maxSimulationTime: 75,
   collisionEpsilon: 0.0001,
   maxCollisionsPerStep: 8,
 });
 
-// Canonical player aim domain = full upward hemisphere, 1°–179°.
+// Canonical player aim domain = upward hemisphere, 5°–175°.
 export const INPUT_CONFIG = Object.freeze({
-  angleMin: 1,
-  angleMax: 179,
+  angleMin: 5,
+  angleMax: 175,
   angleStep: 0.1,
 });
 
@@ -37,6 +37,7 @@ export function columnX(col) {
 export const PROGRESSION_CONFIG = Object.freeze({
   rowStep: 68,
   defaultRowOriginY: 220,
+  defaultTotalWaves: 3,
   topRowY: 220,
   dangerLineY: 1060,
   columnCount: BOARD_GEOMETRY.columnCount,
@@ -53,7 +54,7 @@ export const PROGRESSION_CONFIG = Object.freeze({
 });
 
 export const VERSION = Object.freeze({
-  schemaVersion: '1.1',
+  schemaVersion: '1.2',
   gameVersion: '0.1',
   physicsVersion: '1.0',
   migrationVersion: 'AI-STUDIO-v1',

@@ -129,21 +129,31 @@ Game state includes:
 
 Serialization and deserialization must preserve the next-turn result and future row generation.
 
-## 6.1 Board progression & row descent
+## 6.1 Board progression & Finite-Wave Campaign Stage State Machine (schemaVersion 1.2)
 
-Accepted core-loop rule:
-**Every completed volley advances the board by one row and produces a deterministic new top row.**
+Authoritative stage architecture:
+- Each stage has a finite deterministic wave count (`totalWaves`, e.g. 3 for validation stage L01).
+- Single explicit stage status enum: `stageStatus: 'active' | 'won' | 'failed'`.
+- `waveIndex`: number of incoming waves consumed so far (starts at 0).
+- `isGameOver`: convenience boolean (`stageStatus !== 'active'`).
 
 Authoritative turn pipeline:
 `applyTurnResult(gameState, simulationResult) -> nextGameState`
 
 Progression rules:
-1. Volley shot consequences resolve; destroyed blocks are filtered out (destroyed blocks do not descend).
-2. The first bottom exit determines next-turn launcher X.
-3. All surviving active blocks descend by exactly one row-step (`ROW_STEP = 68`).
-4. A deterministic new row of blocks is generated at `TOP_ROW_Y = 220` with stable IDs (`gen_r{nextRowIndex}_c{col}`) and deterministic HP.
-5. Danger line evaluation: If any active block reaches or crosses the danger line (`block.y + block.height >= DANGER_LINE_Y = 1060`), `isGameOver` becomes true.
-6. The next turn begins from that resulting board state.
+1. Terminal check: If `stageStatus === 'won'` or `stageStatus === 'failed'`, state does not advance further.
+2. Volley shot consequences resolve; destroyed blocks are filtered out (destroyed blocks do not descend).
+3. The first baseline exit determines next-turn launcher X.
+4. All surviving active blocks descend by exactly one row-step (`ROW_STEP = 68`).
+5. Finite wave entry:
+   - If unconsumed waves remain (`waveIndex < totalWaves`), exactly one new row of blocks and optional pickups enters at canonical `rowOriginY` (`columnX(col)`), and `waveIndex` advances by 1.
+   - After the final wave has entered (`waveIndex >= totalWaves`), no further rows or top-row pickups generate.
+6. Danger line evaluation: If any active block reaches or crosses the danger line (`block.y + block.height >= DANGER_LINE_Y = 1060`), `stageStatus` becomes `'failed'`.
+7. Stage completion evaluation:
+   - The stage CANNOT be won while future waves remain (`waveIndex < totalWaves`), even if the current board has 0 blocks.
+   - After all waves have entered (`waveIndex >= totalWaves`), if no active blocks remain on the board and the danger line has not been breached, `stageStatus` becomes `'won'`.
+   - Otherwise, `stageStatus` remains `'active'`.
+8. The next turn begins from that resulting board state.
 
 Presentation rule:
 - Authoritative state updates immediately.

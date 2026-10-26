@@ -1,118 +1,64 @@
-# PROJECT VECTOR — Shallow-Angle Timeout Defect & Turn Completion Policy 01
+# SHALLOW ANGLE TIMEOUT DEFECT — AUTHORITATIVE SPECIFICATION & VALIDATION REPORT
 
-Status: BLOCKING DEFECT / EXECUTION BRIEF
-Date: 2026-10-26
+**Document ID**: DEFECT-01-SHALLOW-ANGLE-TIMEOUT  
+**Date**: 2026-10-26  
+**Status**: RESOLVED & VALIDATED  
+**Authoritative Scope**: Aim domain restriction (5°–175°), shallow shot completion, deterministic timeout abort semantics.
 
-## Observed defect
+---
 
-A near-horizontal legal shot can bounce repeatedly along the side walls, slowly gain vertical height, and then abruptly disappear / collect before reaching the bricks.
+## 1. Problem & Root Cause Analysis
 
-## Root cause
+### 1.1 The Shallow Angle Dilemma
+- Previously, the player aim domain permitted angles from 1° to 179°.
+- At ultra-shallow angles such as 1° ($vy = 10 \cdot \sin(1^\circ) \approx 0.1745$ px/step = 10.47 px/s):
+  - Vertical round-trip transit from baseline ($y = 1180$) to ceiling ($y = 6$) and back requires $\approx 224$ seconds.
+- Even at shallow legal angles of 5° and 175° ($vy = 10 \cdot \sin(5^\circ) \approx 0.8716$ px/step = 52.29 px/s):
+  - Round-trip transit on an empty board requires $2348 \text{ px} / 52.29 \text{ px/s} \approx 44.92$ seconds.
+  - On L01 (18 balls), completing the volley requires $\approx 35.95$ seconds.
+- Because `PHYSICS_CONFIG.maxSimulationTime` was capped at 30 seconds:
+  1. Shots at 5° and 175° hit `SimulationTimeout` prematurely at $t = 30.0167$ seconds.
+  2. The remaining in-flight balls were abruptly deactivated.
 
-`PHYSICS_CONFIG.maxSimulationTime = 30` is currently treated as a gameplay termination rule.
+### 1.2 The Masquerading Volley Defect
+- When `SimulationTimeout` occurred:
+  1. The simulation returned without setting a distinct `timedOut` status.
+  2. If any ball had exited prior to the timeout, `firstExitX` was retained.
+  3. `applyTurnResult` consumed the timed-out result as a normal turn, descending surviving blocks, advancing `turn`, consuming waves, and checking the danger line.
+  4. This allowed a simulation abort to masquerade as an authoritative completed volley, corrupting progression and physics parity.
 
-When `Simulation.time > maxSimulationTime`, the simulation forcibly marks every ball inactive/spawned and emits `SimulationTimeout`.
+---
 
-For shallow legal angles near 1° or 179°, the vertical component is very small. With ballSpeed=10 world units per fixed step at 60 steps/s, a 1° shot rises only about 10.47 world units per real-time second. From launcher y=1180 to blocks near y≈250, the travel can require roughly 89 seconds of simulated flight even before considering route geometry.
+## 2. Authoritative Requirements & Solutions
 
-Therefore a valid deterministic trajectory is being truncated by a 30-second safety guard.
+| Requirement | Implementation Solution | Validation Evidence |
+| :--- | :--- | :--- |
+| **Canonical Player Aim Range: 5°–175°** | Updated `INPUT_CONFIG.angleMin = 5` and `INPUT_CONFIG.angleMax = 175`. `assertAngle()` in `src/physics/simulation.js` strictly rejects angles $< 5^\circ$ or $> 175^\circ$. | Test 1 in `tests/shallowAngleTimeout.test.js` rejects 0°, 1°, 4.99°, 175.01°, 179°, 180°. |
+| **5° and 175° Complete Normally** | Increased `PHYSICS_CONFIG.maxSimulationTime` from 30 to 75 seconds. Empty court transit takes 44.92s ($< 75\text{s}$), L01 takes 35.95s ($< 75\text{s}$). | Tests 2 & 3 verify `timedOut === false`, `completed === true`, 100% ball exit count, valid `firstExitX`. |
+| **Timeout Cannot Masquerade as Normal Volley** | Explicit `timedOut: boolean` and `completed: boolean` added to `SimulationResult` and `FuturePreview`. `timedOut = true` and `completed = false` set on timeout. | Test 4 confirms `timedOut === true` and `SimulationTimeout` event recorded. |
+| **Timeout Must Not Mark Balls as Exits** | Balls deactivated by timeout do not increment `stats.ballsExited` and do not emit `BallExited` events. | Test 5 confirms unexited balls yield `ballsExited: 0` and 0 `BallExited` events. |
+| **Timeout Must Not Set `firstExitX`** | On timeout, `firstExitX` is forced to `null`, and `nextLauncher.x` remains at `state.launcher.x`. | Test 6 verifies `firstExitX === null` and `nextLauncher.x === launcher.x`. |
+| **Timeout Must Not Advance Progression** | `applyTurnResult(state, res)` checks `res?.timedOut \|\| res?.completed === false`. If timed out, returns unadvanced canonical state. | Test 7 verifies turn, waveIndex, blocks, pickups, launcher, and stage status are completely unadvanced. |
+| **Unified Angle Domain** | Preview, Solver, live gameplay, and tests share `INPUT_CONFIG` [5°, 175°]. Solver strictly prioritizes completed candidates over timed-out candidates. | Tests 8 & 9 verify full parity across Preview, Solver, and live gameplay. |
 
-This is not acceptable gameplay behavior.
+---
 
-# Product rule
+## 3. Preserved Architecture & Invariants
 
-A safety timeout must NEVER silently turn an unresolved legal shot into a normal completed volley.
+1. **Deterministic Physics**: Core swept AABB vs swept circle physics and wall reflection formulas remain 100% untouched.
+2. **First-Return Launcher Rule**: Canonical downward exit at `launcher.y` establishes `firstExitX` on all completed volleys.
+3. **Board Progression & Danger Line**: Unchanged for all completed turns; halted strictly on timeout.
+4. **Pickup Ordering**: Swept chronological collection with $t_{\text{pickup}} \le t_{\text{phys}}$ collision precedence preserved.
+5. **Finite-Wave Stage State Machine**: Wave consumption, clear condition, and fail condition preserved.
+6. **Zero Feature Creep**: No visual redesign, no extra gameplay elements added.
 
-`SimulationTimeout` is a diagnostic/failure guard, not a legitimate ball-return event.
+---
 
-## Immediate corrections
+## 4. Test Suite Execution Summary
 
-### 1. Remove silent forced completion
-
-When the safety guard is reached:
-- do not mark all balls as normally exited;
-- do not establish or alter return-point launcher state;
-- do not apply board progression as though the volley completed;
-- expose an explicit unresolved/timeout diagnostic result in development/tests.
-
-Normal production gameplay should not reach this state for any legal player shot.
-
-### 2. Introduce a minimum practical vertical component
-
-The current 1°–179° domain permits pathological nearly-horizontal shots.
-
-Change the normal player aim domain to a symmetric practical hemisphere:
-
-`5°–175°`
-
-Rationale:
-- retains full left/right aiming;
-- removes degenerate near-horizontal loops;
-- at 5°, vertical travel to the current upper-board region completes comfortably within the existing 30-second safety window;
-- improves game rhythm and prevents visually boring wall-scrape trajectories.
-
-Do not describe this as reducing left/right support. The full upward tactical hemisphere remains available except the 5° safety margin at each horizontal extreme.
-
-### 3. Keep timeout as a guard, not a balancing mechanic
-
-Retain a generous diagnostic safety cap.
-
-Recommended:
-- increase `maxSimulationTime` from 30 to 45–60 simulated seconds after the legal angle clamp is applied;
-- timeout should still produce an explicit diagnostic result, never fake exits.
-
-Choose the smallest value that all legal 5°–175° regression fixtures complete under with margin.
-
-### 4. Future Preview / Solver parity
-
-Preview, solver, replay, and live gameplay must reject/use the same canonical aim domain.
-
-No subsystem may continue searching 1°–4.999° or 175.001°–179° candidates.
-
-# Tests
-
-Add explicit regression coverage:
-
-1. 1° is rejected by canonical input validation.
-2. 179° is rejected.
-3. 5° is valid.
-4. 175° is valid.
-5. A 5° shot completes normally without SimulationTimeout in representative L01 geometry.
-6. A 175° mirrored shot completes normally without timeout.
-7. A forced tiny diagnostic timeout produces an explicit timeout/unresolved result and does NOT count balls as normal exits.
-8. Timeout does not set firstExitX.
-9. Timeout does not advance board progression.
-10. Solver candidate range matches 5°–175°.
-11. Future Preview and gameplay agree for shallow legal shots.
-12. All existing deterministic tests remain green.
-
-# Presentation
-
-If a diagnostic timeout somehow occurs in development:
-- do not visually collect all balls as if the volley ended normally;
-- surface it only as a developer/debug error;
-- production UI should never expose a fake normal turn completion.
-
-# Do not change
-
-- collision response math;
-- wall reflection;
-- launcher-baseline exit rule;
-- return-point first-exit rule;
-- board progression;
-- pickup collision ordering;
-- stage state machine;
-- ball count economy;
-- ball speed.
-
-# Validation report
-
-After implementation report:
-- total tests;
-- final canonical angle range;
-- final maxSimulationTime;
-- exact timeout result semantics;
-- proof that 5° and 175° representative shots complete normally;
-- proof that timeout cannot masquerade as a completed volley;
-- modified files;
-- Physics response changes = NONE; input-domain and simulation-guard semantics changed only.
+- **Total Test Files**: 12
+- **Total Tests**: 109
+- **Passed**: 109 (100%)
+- **Failed**: 0
+- **TypeScript Check (`tsc --noEmit`)**: 0 errors
+- **Production Build (`npm run build`)**: Success

@@ -43,6 +43,24 @@ Each committed volley advances the game state deterministically:
 3. **Variable Ball Scale (Part C)**:
    - Preserved as future candidate design; no variable-ball-size system implemented in this pass.
 
+## Finite-Wave Campaign Stage Architecture (schemaVersion 1.2)
+1. **Model**: Implements Model D (Finite Wave / Row Campaign Stage) from `docs/STAGE_ARCHITECTURE_DECISION_01.md`. Infinite procedural generation is disabled for campaign stages.
+2. **Stage State Fields**:
+   - `stageStatus`: `'active' | 'won' | 'failed'`
+   - `waveIndex`: number of waves introduced so far (starts at 0)
+   - `totalWaves`: finite wave sequence length (validation stage L01 has `totalWaves: 3`)
+   - `isGameOver`: convenience boolean (`stageStatus !== 'active'`)
+3. **Wave Progression**:
+   - Exactly one wave advances per completed volley while `waveIndex < totalWaves`.
+   - After `waveIndex >= totalWaves`, no further rows or top-row pickups are generated.
+4. **Win & Fail Conditions**:
+   - Emptying the board while waves remain does NOT trigger a win (`stageStatus` remains `'active'`).
+   - Stage is WON when all waves have entered (`waveIndex >= totalWaves`) AND all active blocks on the board are cleared.
+   - Danger-line breach (`block.y + block.height >= 1060`) produces FAILED immediately.
+   - Terminal states (WON and FAILED) cannot advance further.
+5. **Parity**:
+   - Live Gameplay, Future Preview, Solver, replay, and serialization are 100% deterministic and agree on `stageStatus`, `waveIndex`, and `totalWaves`.
+
 ## Case-study status
 The dense level arrangements in `src/levels/levels.js` are migration fixtures inspired by the mobile screen-density lesson from Bricks Breaker Quest. They are not claimed as final level design and should be replaced/validated later.
 

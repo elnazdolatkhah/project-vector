@@ -7,9 +7,15 @@ import { Simulation, simulateTurn } from '../src/physics/simulation.js';
 import { previewFuture } from '../src/future/futureEngine.js';
 import { solve } from '../src/solver/solver.js';
 
-test('canonical INPUT_CONFIG allows the full upward hemisphere (1°–179°)', () => {
-  assert.equal(INPUT_CONFIG.angleMin, 1);
-  assert.equal(INPUT_CONFIG.angleMax, 179);
+test('canonical INPUT_CONFIG allows the canonical aim domain (5°–175°)', () => {
+  assert.equal(INPUT_CONFIG.angleMin, 5);
+  assert.equal(INPUT_CONFIG.angleMax, 175);
+
+  const state = createGameState(LEVELS.L01);
+  assert.throws(() => simulateTurn(state, 1), /angleDeg must be between 5 and 175/);
+  assert.throws(() => simulateTurn(state, 4.9), /angleDeg must be between 5 and 175/);
+  assert.throws(() => simulateTurn(state, 175.1), /angleDeg must be between 5 and 175/);
+  assert.throws(() => simulateTurn(state, 179), /angleDeg must be between 5 and 175/);
 });
 
 test('an angle below 90° produces a rightward initial X component', () => {
@@ -58,30 +64,34 @@ test('pointer aiming can resolve a valid upper-left angle rather than clamping i
   assert.ok(Math.abs(clampedAngle - 135) < 1e-4, `expected 135°, got ${clampedAngle}°`);
 });
 
-test('solver and Future Preview support the full 1°–179° range', () => {
+test('solver and Future Preview support the full 5°–175° range', () => {
   const state = createGameState(LEVELS.L01);
 
   // Future preview at extreme left
   const leftFuture = previewFuture(state, 175, { record: false });
   assert.ok(leftFuture.result, 'previewFuture should succeed at 175°');
   assert.equal(leftFuture.angleDeg, 175);
+  assert.equal(leftFuture.timedOut, false);
+  assert.equal(leftFuture.completed, true);
 
   // Future preview at extreme right
   const rightFuture = previewFuture(state, 5, { record: false });
   assert.ok(rightFuture.result, 'previewFuture should succeed at 5°');
   assert.equal(rightFuture.angleDeg, 5);
+  assert.equal(rightFuture.timedOut, false);
+  assert.equal(rightFuture.completed, true);
 
-  // Solver over full 1°–179° hemisphere
+  // Solver over full 5°–175° domain
   const solution = solve(state, {
-    angleMin: 1,
-    angleMax: 179,
+    angleMin: 5,
+    angleMax: 175,
     step: 25,
     objective: 'destruction',
     includeRobustness: true,
   });
 
   assert.ok(solution.best, 'solver should return a best candidate');
-  assert.ok(solution.candidates.length >= 7, 'solver should test candidates across 1°–179°');
+  assert.ok(solution.candidates.length >= 7, 'solver should test candidates across 5°–175°');
   assert.ok(solution.candidates.some((c) => c.angleDeg > 90), 'solver candidates must include angles > 90°');
   assert.ok(solution.candidates.some((c) => c.angleDeg < 90), 'solver candidates must include angles < 90°');
 });
