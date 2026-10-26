@@ -1,4 +1,4 @@
-import { PROGRESSION_CONFIG, PHYSICS_CONFIG } from '../config.js';
+import { PROGRESSION_CONFIG, PHYSICS_CONFIG, columnX } from '../config.js';
 import { clampLauncherX, validateGameState, canonicalizeGameState } from './gameState.js';
 
 /**
@@ -43,7 +43,7 @@ export function generateTopRow(state) {
 
   return cols.map((col) => {
     const id = `gen_r${nextRowIndex}_c${col}`;
-    const x = PROGRESSION_CONFIG.startX + col * PROGRESSION_CONFIG.columnSpacing;
+    const x = columnX(col);
     const y = rowOriginY;
     const value = calculateBlockHP(turn, col, nextRowIndex);
 
@@ -88,7 +88,7 @@ export function generateTopRowPickups(state, { cadence = null } = {}) {
     : (nextRowIndex % 8);
 
   const id = `pickup_r${nextRowIndex}_c${chosenCol}`;
-  const x = PROGRESSION_CONFIG.startX + chosenCol * PROGRESSION_CONFIG.columnSpacing + PROGRESSION_CONFIG.blockWidth / 2;
+  const x = columnX(chosenCol) + PROGRESSION_CONFIG.blockWidth / 2;
   const y = rowOriginY + PROGRESSION_CONFIG.blockHeight / 2;
   const radius = PROGRESSION_CONFIG.pickupRadius ?? 14;
 

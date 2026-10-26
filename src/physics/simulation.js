@@ -263,7 +263,14 @@ export class Simulation {
     if (D.x < 0) consider((radius - P0.x) / D.x, { x: 1, y: 0 }, 'wall');
     if (D.x > 0) consider((cfg.canvasWidth - radius - P0.x) / D.x, { x: -1, y: 0 }, 'wall');
     if (D.y < 0) consider((radius - P0.y) / D.y, { x: 0, y: 1 }, 'wall');
-    if (D.y > 0) consider((cfg.canvasHeight + radius - P0.y) / D.y, { x: 0, y: -1 }, 'exit');
+    if (D.y > 0) {
+      const exitY = this.launcher.y;
+      if (P0.y >= exitY) {
+        consider(0, { x: 0, y: -1 }, 'exit');
+      } else {
+        consider((exitY - P0.y) / D.y, { x: 0, y: -1 }, 'exit');
+      }
+    }
 
     for (const block of this.blocks) {
       if (!block.active) continue;

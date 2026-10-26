@@ -10,7 +10,8 @@
 - Preview, gameplay, solver, replay, and validation must call the same physics implementation and progression pipeline.
 - Fixed-step simulation.
 - Swept circle-vs-AABB collision with corner handling.
-- Bottom boundary is EXIT, not reflect. The first ball to exit through the bottom determines the horizontal launcher origin for the next turn.
+- Bottom boundary is EXIT at launcher baseline (`y = launcher.y = 1180`), not canvasHeight. Downward-moving balls exit when their center reaches/crosses launcher.y; upward-moving balls at spawn do not self-exit. The first ball to exit at the baseline determines the horizontal launcher origin for the next turn. Balls never remain active below the baseline.
+- Canonical Edge-Sealed Geometry (`BOARD_GEOMETRY`, `columnX(col)`): full 8-column rows seal against side walls (8-unit gap < 12-unit ball diameter), eliminating accidental wall-scrape channels while preserving deliberate empty-column corridors (97.5-unit width).
 - State carries independent `schemaVersion` (v1.1), `gameVersion`, and `physicsVersion`.
 - Canonical player aim domain = full upward hemisphere, 1°–179° (superseding earlier 1°–89° restriction).
 - The player must be able to inspect consequences before launch. Prediction is the product's core differentiator.

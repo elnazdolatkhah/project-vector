@@ -76,10 +76,20 @@ Canonical configuration:
 - max collisions per step: 8
 
 Boundary behavior:
-- left: reflect
-- right: reflect
-- top: reflect
-- bottom: EXIT (The first ball to exit through the bottom determines the horizontal launcher origin for the next turn; next-turn launcher Y remains fixed at the baseline; X is clamped to `[ballRadius, canvasWidth - ballRadius]`).
+- left: reflect (x = 0; visual court wall at 8)
+- right: reflect (x = 720; visual court wall at 712)
+- top: reflect (y = 0; visual court wall at 8)
+- bottom: EXIT at launcher baseline (`y = launcher.y = 1180`). Downward-moving balls (`vy > 0`) exit when their center reaches/crosses the launcher baseline. Upward-moving balls at spawn (`vy < 0`) do not self-exit. The first ball to reach the baseline determines next-turn launcher X (`nextLauncher.x`, clamped to `[ballRadius, canvasWidth - ballRadius]`). Balls never remain active below the launcher baseline.
+
+Playfield geometry (Canonical Edge-Sealed Geometry):
+- `playableLeft`: 8
+- `playableRight`: 712
+- `columnCount`: 8
+- `interColumnGap`: 12
+- `blockWidth`: 77.5
+- `blockHeight`: 56
+- `columnX(col) = playableLeft + col * (blockWidth + interColumnGap)`
+- An occupied edge column (col 0 or col 7) leaves only an 8-unit gap to the outer boundary, which is strictly less than the standard ball diameter (12 units), sealing the route against wall-scraping. An intentionally empty edge column provides a 97.5-unit corridor, freely traversable.
 
 Ball-to-ball collision is disabled in the MVP.
 

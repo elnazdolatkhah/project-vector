@@ -29,6 +29,20 @@ Each committed volley advances the game state deterministically:
 4. **Persistent Effect**: Each collected pickup increments `GameState.balls.available` starting on the subsequent turn.
 5. **Exact Parity**: Gameplay, Future Preview, Solver, replay, and serialization are 100% identical.
 
+## Playfield Geometry and Ball Scale Pass 01 (Parts A & B)
+1. **Canonical Edge-Sealed Playfield Geometry**:
+   - Single source of truth `BOARD_GEOMETRY` in `src/config.js` (`playableLeft = 8`, `playableRight = 712`, `columnCount = 8`, `interColumnGap = 12`, `blockWidth = 77.5`, `blockHeight = 56`).
+   - `columnX(col)` helper shared by level fixtures (`src/levels/levels.js`) and generated top rows (`src/domain/progression.js`).
+   - Occupied edge columns seal against playable left/right walls with an 8-unit clearance (< 12-unit ball diameter), eliminating accidental wall-scrape passage for standard balls ($r=6$).
+   - Intentionally empty edge columns leave open corridors of 97.5 units ($97.5 \gg 12$), fully traversable.
+2. **Launcher-Baseline Return / Exit Line**:
+   - Downward-moving balls (`vy > 0`) exit when their center reaches/crosses `launcher.y = 1180` (rather than canvas bottom 1280).
+   - Upward-moving balls at spawn (`vy < 0`) do not self-exit.
+   - The first downward crossing sets `firstExitX` and next-turn launcher position.
+   - Balls never remain active below the baseline.
+3. **Variable Ball Scale (Part C)**:
+   - Preserved as future candidate design; no variable-ball-size system implemented in this pass.
+
 ## Case-study status
 The dense level arrangements in `src/levels/levels.js` are migration fixtures inspired by the mobile screen-density lesson from Bricks Breaker Quest. They are not claimed as final level design and should be replaced/validated later.
 

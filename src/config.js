@@ -18,16 +18,35 @@ export const INPUT_CONFIG = Object.freeze({
   angleStep: 0.1,
 });
 
+export const BOARD_GEOMETRY = Object.freeze({
+  playableLeft: 8,
+  playableRight: 712,
+  columnCount: 8,
+  interColumnGap: 12,
+  blockWidth: 77.5,
+  blockHeight: 56,
+});
+
+export function columnX(col) {
+  if (col < 0 || col >= BOARD_GEOMETRY.columnCount) {
+    throw new RangeError(`Column index ${col} out of range [0, ${BOARD_GEOMETRY.columnCount - 1}]`);
+  }
+  return BOARD_GEOMETRY.playableLeft + col * (BOARD_GEOMETRY.blockWidth + BOARD_GEOMETRY.interColumnGap);
+}
+
 export const PROGRESSION_CONFIG = Object.freeze({
   rowStep: 68,
   defaultRowOriginY: 220,
   topRowY: 220,
   dangerLineY: 1060,
-  columnCount: 8,
-  columnSpacing: 82,
-  startX: 34,
-  blockWidth: 70,
-  blockHeight: 56,
+  columnCount: BOARD_GEOMETRY.columnCount,
+  columnSpacing: BOARD_GEOMETRY.blockWidth + BOARD_GEOMETRY.interColumnGap,
+  startX: BOARD_GEOMETRY.playableLeft,
+  blockWidth: BOARD_GEOMETRY.blockWidth,
+  blockHeight: BOARD_GEOMETRY.blockHeight,
+  interColumnGap: BOARD_GEOMETRY.interColumnGap,
+  playableLeft: BOARD_GEOMETRY.playableLeft,
+  playableRight: BOARD_GEOMETRY.playableRight,
   pickupRadius: 14,
   pickupSpawnCadence: 3,
   transitionDurationMs: 220,
