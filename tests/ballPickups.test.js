@@ -283,3 +283,50 @@ test('12: full board progression still generates/descent correctly with pickups 
     assert.ok(b.y >= state.rowOriginY, 'blocks must be at or below rowOriginY');
   }
 });
+
+test('13: nextBallCount strictly equals currentBallCount + ballPickupsCollected for completed volleys', () => {
+  // 1. Authoritative check on L03: starting ball count = 18, angle 25.5° collects 1 pickup
+  const l03State = createGameState(LEVELS.L03);
+  assert.equal(l03State.balls.available, 18, 'L03 starting ball count must be 18');
+
+  const l03Preview = previewFuture(l03State, 25.5, { record: false });
+  assert.equal(l03Preview.completed, true, 'angle 25.5° must complete normally');
+  assert.equal(l03Preview.timedOut, false, 'angle 25.5° must not time out');
+  assert.equal(l03Preview.ballPickupsCollected, 1, 'must collect exactly 1 pickup');
+  assert.equal(l03Preview.nextBallCount, 19, 'nextBallCount must equal 18 + 1 = 19');
+  assert.equal(l03Preview.nextGameState.balls.available, 19, 'replayed nextGameState.balls.available must be 19');
+
+  // Verify Solver replay consistency
+  const replaySim = simulateTurn(l03State, 25.5, { record: false });
+  const replayNextState = applyTurnResult(l03State, replaySim);
+  assert.equal(replayNextState.balls.available, 19, 'replayed applyTurnResult balls.available must be 19');
+
+  // 2. Authoritative check on timeout: timed-out candidate must NOT advance ball count
+  const l03Timeout = previewFuture(l03State, 23.5, { record: false });
+  assert.equal(l03Timeout.timedOut, true, 'angle 23.5° times out in L03');
+  assert.equal(l03Timeout.completed, false, 'angle 23.5° did not complete normally');
+  assert.equal(l03Timeout.nextBallCount, 18, 'timed-out future must not advance nextBallCount');
+  assert.equal(l03Timeout.nextGameState.balls.available, 18, 'timed-out nextGameState.balls.available must remain 18');
+
+  // 3. Across all campaign stages L01–L05, verify formula holds on all completed angles
+  for (const stageKey of ['L01', 'L02', 'L03', 'L04', 'L05']) {
+    const stageState = createGameState(LEVELS[stageKey]);
+    const angles = [10, 25.5, 45, 65.5, 70, 83, 90, 111.5, 139.5, 162.5, 170];
+    for (const angle of angles) {
+      const future = previewFuture(stageState, angle, { record: false });
+      if (future.completed && !future.timedOut) {
+        assert.equal(
+          future.nextBallCount,
+          stageState.balls.available + future.ballPickupsCollected,
+          `${stageKey} at ${angle}°: nextBallCount must equal startingBalls + ballPickupsCollected`
+        );
+        assert.equal(
+          future.nextGameState.balls.available,
+          future.nextBallCount,
+          `${stageKey} at ${angle}°: nextGameState.balls.available must equal nextBallCount`
+        );
+      }
+    }
+  }
+});
+

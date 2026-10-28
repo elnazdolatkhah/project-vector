@@ -1,7 +1,7 @@
 import { INPUT_CONFIG } from '../config.js';
 import { simulateTurn } from '../physics/simulation.js';
-import { analyzeRobustness } from '../future/futureEngine.js';
-import { fingerprintGameState, applyTurnResult } from '../domain/gameState.js';
+import { analyzeRobustness, previewFuture } from '../future/futureEngine.js';
+import { fingerprintGameState, applyTurnResult, computeDangerMargin } from '../domain/gameState.js';
 
 export function evaluateObjective(result, objective = 'destruction') {
   if (objective === 'damage') return result.stats.hits;
@@ -21,6 +21,8 @@ export function solve(gameState, {
     const result = simulateTurn(gameState, angleDeg, { record: false });
     const nextGameState = applyTurnResult(gameState, result);
     const ballPickupsCollected = result.ballPickupsCollected ?? result.collectedPickups?.length ?? 0;
+    const dangerMargin = computeDangerMargin(nextGameState);
+
     candidates.push({
       angleDeg,
       objective,
@@ -32,6 +34,7 @@ export function solve(gameState, {
       nextBallCount: nextGameState.balls.available,
       nextLauncher: result.nextLauncher,
       nextGameState,
+      dangerMargin,
       stageStatus: nextGameState.stageStatus,
       isGameOver: nextGameState.isGameOver,
     });
@@ -70,5 +73,75 @@ export function solve(gameState, {
     step,
     best,
     candidates,
+  };
+}
+
+/**
+ * Classifies an authoritative candidate future by consequence and rebound geometry.
+ */
+export function classifyCandidateFuture(gameState, angleDeg) {
+  const preview = previewFuture(gameState, angleDeg, { record: true });
+  const events = preview.result.events;
+  const b0Events = events.filter((e) => e.ballId === 'ball0');
+  const firstBlockIdx = b0Events.findIndex((e) => e.type === 'BlockCollision');
+
+  const leadWallRebounds = b0Events.filter(
+    (e, idx) => e.type === 'WallCollision' && (firstBlockIdx === -1 || idx < firstBlockIdx)
+  ).length;
+
+  const leadSideWallRebounds = b0Events.filter(
+    (e, idx) => e.type === 'WallCollision' && e.normal?.x !== 0 && (firstBlockIdx === -1 || idx < firstBlockIdx)
+  ).length;
+
+  const wallReboundCount = events.filter((e) => e.type === 'WallCollision').length;
+  const sideWallRebounds = events.filter((e) => e.type === 'WallCollision' && e.normal?.x !== 0).length;
+  const blockReboundCount = preview.hits;
+
+  return {
+    angle: angleDeg,
+    angleDeg,
+    damage: preview.damage,
+    destroyed: preview.destroyed,
+    pickups: preview.ballPickupsCollected,
+    ballPickupsCollected: preview.ballPickupsCollected,
+    nextBallCount: preview.nextBallCount,
+    dangerMargin: preview.dangerMargin,
+    nextLauncherX: preview.nextLauncher?.x ?? gameState.launcher.x,
+    stageStatus: preview.stageStatus,
+    wallReboundCount,
+    leadWallRebounds,
+    sideWallRebounds,
+    leadSideWallRebounds,
+    blockReboundCount,
+    timedOut: Boolean(preview.timedOut),
+    completed: Boolean(preview.completed),
+    preview,
+  };
+}
+
+/**
+ * Non-player-facing design/solver analysis report.
+ * Samples candidate angles on an authored stage and reports consequences:
+ * angle, damage, destroyed, pickups, next ball count, danger margin,
+ * next launcher X, stageStatus, wall rebound counts, and block rebound count.
+ */
+export function analyzeStageFutures(gameState, sampleAngles = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165]) {
+  const samples = sampleAngles.map((angleDeg) => {
+    const classification = classifyCandidateFuture(gameState, angleDeg);
+    const { preview, ...sample } = classification;
+    return sample;
+  });
+
+  const uniqueOutcomes = new Set(
+    samples.map(
+      (s) => `${s.damage}|${s.destroyed}|${s.pickups}|${Math.round(s.nextLauncherX)}|${s.stageStatus}|${Math.round(s.dangerMargin)}`
+    )
+  );
+
+  return {
+    levelId: gameState.levelId,
+    sampleCount: samples.length,
+    distinctFuturesCount: uniqueOutcomes.size,
+    samples,
   };
 }

@@ -244,6 +244,15 @@ export class Simulation {
         }
       }
 
+      if (hit.type === 'wall') {
+        this.events.push({
+          t: round6(this.time),
+          type: 'WallCollision',
+          ballId: ball.id,
+          normal: hit.normal,
+        });
+      }
+
       const reflected = V.reflect({ x: ball.vx, y: ball.vy }, hit.normal);
       const normalized = V.norm(reflected);
       ball.vx = normalized.x * cfg.ballSpeed;

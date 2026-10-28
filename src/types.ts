@@ -28,6 +28,19 @@ export interface BallPickup {
 
 export type StageStatus = 'active' | 'won' | 'failed';
 
+export interface WaveBlockSpec {
+  col: number;
+  hp: number;
+  offset?: number;
+  id?: string;
+}
+
+export interface WaveSpec {
+  blocks: WaveBlockSpec[];
+  pickupCol?: number;
+  intent?: string;
+}
+
 export interface Level {
   levelId: string;
   name: string;
@@ -38,6 +51,7 @@ export interface Level {
   ballCount: number;
   blocks: Block[];
   pickups?: BallPickup[];
+  waves?: WaveSpec[];
 }
 
 export interface GameState {
@@ -55,6 +69,7 @@ export interface GameState {
   launcher: Launcher;
   blocks: Block[];
   pickups?: BallPickup[];
+  waves?: WaveSpec[];
   rowOriginY?: number;
   pickupCadence?: number;
   seed?: number;
@@ -122,6 +137,7 @@ export interface FuturePreview {
   remainingBlocks: number;
   initialHP: number;
   initialBlocks: number;
+  dangerMargin?: number;
   trajectories?: Record<string, Vector2D[]> | null;
   firstExitX?: number | null;
   nextLauncher?: Launcher;
@@ -129,6 +145,50 @@ export interface FuturePreview {
   nextGameState: GameState;
   stageStatus: StageStatus;
   isGameOver: boolean;
+}
+
+export interface SolverCandidate {
+  angleDeg: number;
+  objective: string;
+  timedOut: boolean;
+  completed: boolean;
+  score: number;
+  stats: SimulationStats;
+  ballPickupsCollected: number;
+  nextBallCount: number;
+  nextLauncher?: Launcher;
+  nextGameState: GameState;
+  dangerMargin?: number;
+  stageStatus: StageStatus;
+  isGameOver: boolean;
+  robustness?: number;
+}
+
+export interface StageFuturesAnalysisSample {
+  angle: number;
+  angleDeg: number;
+  damage: number;
+  destroyed: number;
+  pickups: number;
+  ballPickupsCollected: number;
+  nextBallCount: number;
+  nextLauncherX: number;
+  stageStatus: StageStatus;
+  dangerMargin: number;
+  wallReboundCount: number;
+  leadWallRebounds: number;
+  sideWallRebounds: number;
+  leadSideWallRebounds: number;
+  blockReboundCount: number;
+  timedOut?: boolean;
+  completed?: boolean;
+}
+
+export interface StageFuturesAnalysisReport {
+  levelId: string;
+  sampleCount: number;
+  distinctFuturesCount: number;
+  samples: StageFuturesAnalysisSample[];
 }
 
 export interface RobustnessAnalysis {

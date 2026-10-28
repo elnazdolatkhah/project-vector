@@ -2,7 +2,7 @@ import { PROGRESSION_CONFIG, PHYSICS_CONFIG, columnX } from '../config.js';
 import { clampLauncherX, validateGameState, canonicalizeGameState } from './gameState.js';
 
 /**
- * Deterministic column patterns for top-row block placement.
+ * Deterministic column patterns for top-row block placement (tooling / procedural fallback).
  * 8 canonical columns (0..7), providing tactical corridors and variation.
  */
 export const ROW_PATTERNS = Object.freeze([
@@ -18,7 +18,7 @@ export const ROW_PATTERNS = Object.freeze([
 
 /**
  * Deterministic HP calculation for a generated block based on turn and position.
- * Produces integer HP >= 1 that scales predictably with turn progression.
+ * Used for procedural fallback / tooling.
  */
 export function calculateBlockHP(turn, col, nextRowIndex) {
   const base = Math.max(1, turn * 2);
@@ -28,7 +28,7 @@ export function calculateBlockHP(turn, col, nextRowIndex) {
 
 /**
  * Generates a deterministic top row of blocks based purely on GameState.
- * Guarantees stable unique IDs, deterministic HP, and canonical placement.
+ * Procedural fallback for tooling and endless modes.
  */
 export function generateTopRow(state) {
   const seed = Number.isInteger(state?.seed) ? state.seed : 1;
@@ -62,9 +62,7 @@ export function generateTopRow(state) {
 /**
  * Generates deterministic +1 Ball pickups for the newly generated top row.
  * Cadence: defaults to state.pickupCadence or PROGRESSION_CONFIG.pickupSpawnCadence.
- * A pickup spawns when (nextRowIndex % effectiveCadence === 0).
- * Placed deterministically in an open corridor (empty column) of the generated row,
- * centered at (x, y) with unique ID 'pickup_r{nextRowIndex}_c{col}'.
+ * Used for procedural fallback / endless modes.
  */
 export function generateTopRowPickups(state, { cadence = null } = {}) {
   const seed = Number.isInteger(state?.seed) ? state.seed : 1;
@@ -121,16 +119,31 @@ export function checkDangerLineFailure(blocks, dangerLineY = PROGRESSION_CONFIG.
 }
 
 /**
+ * Internal derived metric:
+ * dangerMargin = dangerLineY - max(activeBlockBottomY)
+ * Tooling/solver metric distinguishing futures that deal similar damage but leave different board pressure.
+ */
+export function computeDangerMargin(gameState, dangerLineY = PROGRESSION_CONFIG.dangerLineY) {
+  if (!gameState || !Array.isArray(gameState.blocks)) return dangerLineY;
+  const activeBlocks = gameState.blocks.filter((b) => b.active && b.value > 0);
+  if (activeBlocks.length === 0) {
+    return dangerLineY;
+  }
+  const maxBottom = Math.max(...activeBlocks.map((b) => b.y + b.height));
+  return Math.round((dangerLineY - maxBottom) * 1e6) / 1e6;
+}
+
+/**
  * Canonical state transition function for committed turns.
  * 
  * Pipeline:
  * 1. Filter surviving blocks (destroyed blocks do not descend).
  * 2. Next launcher X determined from first bottom exit.
  * 3. Surviving blocks descend by exactly one ROW_STEP (68 units).
- * 4. Deterministic new row generated at canonical rowOriginY.
+ * 4. Deterministic new row: consumes authored wave if defined on state, otherwise procedural fallback.
  * 5. Danger line failure evaluation (block.y + block.height >= DANGER_LINE_Y).
  * 6. Pickup progression: collected pickups increase balls.available for subsequent turns;
- *    uncollected pickups descend; new top-row pickups generated deterministically.
+ *    uncollected pickups descend; new top-row pickups generated deterministically from authored wave / cadence.
  * 7. Turn increment and score accumulation.
  * 8. Canonical validation and state serialization.
  */
@@ -155,7 +168,7 @@ export function applyTurnResult(state, simulationResult) {
   // Finite wave progression check
   const totalWaves = Number.isInteger(state.totalWaves)
     ? state.totalWaves
-    : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+    : (Array.isArray(state.waves) ? state.waves.length : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3));
   const currentWaveIndex = Number.isInteger(state.waveIndex) ? state.waveIndex : 0;
   const wavesRemaining = Math.max(0, totalWaves - currentWaveIndex);
 
@@ -164,12 +177,46 @@ export function applyTurnResult(state, simulationResult) {
   let nextWaveIndex = currentWaveIndex;
   let nextRowIndex = state.nextRowIndex ?? 1;
 
+  const rowOriginY = typeof state?.rowOriginY === 'number' && Number.isFinite(state.rowOriginY)
+    ? state.rowOriginY
+    : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
+
   if (wavesRemaining > 0) {
-    // 3: Generate deterministic new top row of blocks for incoming wave
-    newRow = generateTopRow(state);
-    newPickups = generateTopRowPickups(state);
-    nextWaveIndex = currentWaveIndex + 1;
-    nextRowIndex += 1;
+    if (Array.isArray(state.waves)) {
+      // Primary campaign path: deterministic authored wave
+      const waveSpec = state.waves[currentWaveIndex];
+      if (waveSpec) {
+        newRow = (waveSpec.blocks || []).map((b) => ({
+          id: b.id ?? `gen_r${nextRowIndex}_c${b.col}`,
+          x: columnX(b.col) + (b.offset ?? 0),
+          y: rowOriginY,
+          width: PROGRESSION_CONFIG.blockWidth,
+          height: PROGRESSION_CONFIG.blockHeight,
+          value: b.hp,
+          active: true,
+        }));
+
+        if (typeof waveSpec.pickupCol === 'number' && Number.isInteger(waveSpec.pickupCol)) {
+          newPickups = [
+            {
+              id: `pickup_r${nextRowIndex}_c${waveSpec.pickupCol}`,
+              x: columnX(waveSpec.pickupCol) + PROGRESSION_CONFIG.blockWidth / 2,
+              y: rowOriginY + PROGRESSION_CONFIG.blockHeight / 2,
+              radius: PROGRESSION_CONFIG.pickupRadius ?? 14,
+              active: true,
+            },
+          ];
+        }
+      }
+      nextWaveIndex = currentWaveIndex + 1;
+      nextRowIndex += 1;
+    } else {
+      // Procedural fallback for tooling / endless mode
+      newRow = generateTopRow(state);
+      newPickups = generateTopRowPickups(state);
+      nextWaveIndex = currentWaveIndex + 1;
+      nextRowIndex += 1;
+    }
   }
 
   // 4: Combined board blocks
@@ -226,6 +273,7 @@ export function applyTurnResult(state, simulationResult) {
       x: nextLauncherX,
       y: state.launcher.y,
     },
+    ...(Array.isArray(state.waves) ? { waves: state.waves } : {}),
     isGameOver,
   };
 

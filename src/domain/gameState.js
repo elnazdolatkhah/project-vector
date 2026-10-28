@@ -1,5 +1,5 @@
 import { VERSION, PHYSICS_CONFIG, PROGRESSION_CONFIG } from '../config.js';
-import { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure } from './progression.js';
+import { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure, computeDangerMargin } from './progression.js';
 
 function finiteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -30,6 +30,37 @@ export function validateGameState(state) {
   if (state.seed !== undefined && !Number.isInteger(state.seed)) errors.push('seed must be an integer');
   if (state.nextRowIndex !== undefined && (!Number.isInteger(state.nextRowIndex) || state.nextRowIndex < 1)) errors.push('nextRowIndex must be an integer >= 1');
   if (state.isGameOver !== undefined && typeof state.isGameOver !== 'boolean') errors.push('isGameOver must be a boolean');
+
+  if (state.waves !== undefined) {
+    if (!Array.isArray(state.waves)) {
+      errors.push('waves must be an array');
+    } else {
+      for (const [wIdx, wave] of state.waves.entries()) {
+        if (!wave || typeof wave !== 'object') {
+          errors.push(`wave[${wIdx}] must be an object`);
+          continue;
+        }
+        if (!Array.isArray(wave.blocks)) {
+          errors.push(`wave[${wIdx}].blocks must be an array`);
+        } else {
+          for (const [bIdx, b] of wave.blocks.entries()) {
+            if (!Number.isInteger(b.col) || b.col < 0 || b.col > 7) {
+              errors.push(`wave[${wIdx}].blocks[${bIdx}].col must be integer between 0 and 7`);
+            }
+            if (!finiteNumber(b.hp) || b.hp <= 0) {
+              errors.push(`wave[${wIdx}].blocks[${bIdx}].hp must be > 0`);
+            }
+            if (b.offset !== undefined && !finiteNumber(b.offset)) {
+              errors.push(`wave[${wIdx}].blocks[${bIdx}].offset must be finite`);
+            }
+          }
+        }
+        if (wave.pickupCol !== undefined && (!Number.isInteger(wave.pickupCol) || wave.pickupCol < 0 || wave.pickupCol > 7)) {
+          errors.push(`wave[${wIdx}].pickupCol must be integer between 0 and 7`);
+        }
+      }
+    }
+  }
 
   if (state.pickups !== undefined) {
     if (!Array.isArray(state.pickups)) errors.push('pickups must be an array');
@@ -68,7 +99,7 @@ export function createGameState(level) {
 
   const totalWaves = Number.isInteger(level.totalWaves) && level.totalWaves >= 0
     ? level.totalWaves
-    : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+    : (Array.isArray(level.waves) ? level.waves.length : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3));
 
   const waveIndex = Number.isInteger(level.waveIndex) && level.waveIndex >= 0
     ? level.waveIndex
@@ -90,6 +121,13 @@ export function createGameState(level) {
       }))
     : [];
 
+  const waves = Array.isArray(level.waves)
+    ? level.waves.map((w) => ({
+        ...w,
+        blocks: (w.blocks || []).map((b) => ({ ...b })),
+      }))
+    : undefined;
+
   const state = {
     ...VERSION,
     levelId: level.levelId,
@@ -102,6 +140,7 @@ export function createGameState(level) {
     launcher: { ...level.launcher },
     blocks: level.blocks.map((b) => ({ ...b })),
     pickups,
+    ...(waves !== undefined ? { waves } : {}),
     rowOriginY,
     pickupCadence: Number.isInteger(level.pickupCadence) ? level.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(level.seed) ? level.seed : 1,
@@ -121,7 +160,7 @@ export function canonicalizeGameState(state) {
     : (PROGRESSION_CONFIG.defaultRowOriginY ?? PROGRESSION_CONFIG.topRowY);
 
   const stageStatus = state.stageStatus ?? (state.isGameOver ? 'failed' : 'active');
-  const totalWaves = Number.isInteger(state.totalWaves) ? state.totalWaves : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3);
+  const totalWaves = Number.isInteger(state.totalWaves) ? state.totalWaves : (Array.isArray(state.waves) ? state.waves.length : (PROGRESSION_CONFIG.defaultTotalWaves ?? 3));
   const waveIndex = Number.isInteger(state.waveIndex) ? state.waveIndex : 0;
   const isGameOver = stageStatus === 'failed';
 
@@ -136,6 +175,13 @@ export function canonicalizeGameState(state) {
         }))
         .sort((a, b) => a.id.localeCompare(b.id))
     : [];
+
+  const waves = Array.isArray(state.waves)
+    ? state.waves.map((w) => ({
+        ...w,
+        blocks: (w.blocks || []).map((b) => ({ ...b })),
+      }))
+    : undefined;
 
   return {
     schemaVersion: VERSION.schemaVersion,
@@ -154,6 +200,7 @@ export function canonicalizeGameState(state) {
       .map((b) => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height, value: b.value, active: b.active }))
       .sort((a, b) => a.id.localeCompare(b.id)),
     pickups,
+    ...(waves !== undefined ? { waves } : {}),
     rowOriginY,
     pickupCadence: Number.isInteger(state.pickupCadence) ? state.pickupCadence : PROGRESSION_CONFIG.pickupSpawnCadence,
     seed: Number.isInteger(state.seed) ? state.seed : 1,
@@ -190,5 +237,4 @@ export function clampLauncherX(x, config = PHYSICS_CONFIG) {
   return Math.round(clamped * 1e6) / 1e6;
 }
 
-export { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure, PROGRESSION_CONFIG };
-
+export { applyTurnResult, generateTopRow, generateTopRowPickups, checkDangerLineFailure, computeDangerMargin, PROGRESSION_CONFIG };

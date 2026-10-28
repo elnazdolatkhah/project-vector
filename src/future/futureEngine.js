@@ -1,6 +1,6 @@
 import { simulateTurn } from '../physics/simulation.js';
 import { INPUT_CONFIG } from '../config.js';
-import { fingerprintGameState, applyTurnResult } from '../domain/gameState.js';
+import { fingerprintGameState, applyTurnResult, computeDangerMargin } from '../domain/gameState.js';
 
 export function blockHP(blocks) {
   return blocks.filter((b) => b.active).reduce((sum, b) => sum + Math.max(0, b.value), 0);
@@ -14,6 +14,8 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
   const remainingBlocks = result.finalBlocks.filter((b) => b.active).length;
   const nextGameState = applyTurnResult(gameState, result);
   const ballPickupsCollected = result.ballPickupsCollected ?? result.collectedPickups?.length ?? 0;
+  const dangerMargin = computeDangerMargin(nextGameState);
+
   return {
     stateFingerprint: fingerprintGameState(gameState),
     physicsVersion: gameState.physicsVersion,
@@ -29,6 +31,7 @@ export function previewFuture(gameState, angleDeg, { record = true } = {}) {
     remainingBlocks,
     initialHP,
     initialBlocks,
+    dangerMargin,
     trajectories: result.trajectories,
     firstExitX: result.firstExitX,
     nextLauncher: result.nextLauncher,
