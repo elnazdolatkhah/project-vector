@@ -6,6 +6,8 @@ import {
   deserializeGameState,
   applyTurnResult,
   computeDangerMargin,
+  validatePickupClearance,
+  computePickupBlockClearance,
 } from '../src/domain/gameState.js';
 import { ROW_PATTERNS, generateTopRow } from '../src/domain/progression.js';
 import { simulateTurn } from '../src/physics/simulation.js';
@@ -390,3 +392,84 @@ test('11: analyzeStageFutures produces non-player-facing design report with cand
     assert.equal(s.completed, true);
   }
 });
+
+test('12: campaign initial and authored-wave pickups maintain strict physical clearance margin from block AABBs', () => {
+  const margin = PROGRESSION_CONFIG.pickupClearanceMargin ?? 6;
+  assert.equal(margin, 6, 'pickupClearanceMargin must be explicitly defined as 6px');
+
+  const stageKeys = ['L01', 'L02', 'L03', 'L04', 'L05'];
+
+  for (const key of stageKeys) {
+    const level = LEVELS[key];
+    const state = createGameState(level);
+
+    // 1. Initial pickups vs initial blocks
+    const clearanceRes = validatePickupClearance(state, margin);
+    assert.equal(
+      clearanceRes.ok,
+      true,
+      `${key} initial pickups must not intersect or violate ${margin}px clearance margin from any block: ${JSON.stringify(clearanceRes.violations)}`
+    );
+
+    // Verify distance computation manually for every active pickup
+    for (const p of state.pickups) {
+      assert.ok(p.radius >= 14, `${key} pickup radius must be >= 14px`);
+      for (const b of state.blocks) {
+        const c = computePickupBlockClearance(p, b);
+        assert.ok(
+          c >= margin,
+          `${key} pickup ${p.id} at (${p.x}, ${p.y}) has clearance ${c.toFixed(2)}px from block ${b.id}, must be >= ${margin}px`
+        );
+      }
+    }
+
+    // 2. Authored wave pickups
+    let currentState = state;
+    for (let wIdx = 0; wIdx < level.waves.length; wIdx += 1) {
+      const waveSpec = level.waves[wIdx];
+      if (typeof waveSpec.pickupCol === 'number') {
+        // Assert wave pickupCol does not match any block in the wave
+        const blockInSameCol = waveSpec.blocks.find((b) => b.col === waveSpec.pickupCol);
+        assert.equal(
+          blockInSameCol,
+          undefined,
+          `${key} wave ${wIdx} pickupCol ${waveSpec.pickupCol} cannot overlap authored block at column ${blockInSameCol?.col}`
+        );
+      }
+
+      // Progress through wave and verify newly spawned pickups in the board state
+      const sim = simulateTurn(currentState, 45, { record: false });
+      currentState = applyTurnResult(currentState, sim);
+
+      const waveClearance = validatePickupClearance(currentState, margin);
+      assert.equal(
+        waveClearance.ok,
+        true,
+        `${key} board on wave ${wIdx + 1} must maintain ${margin}px clearance for all active pickups: ${JSON.stringify(waveClearance.violations)}`
+      );
+    }
+  }
+
+  // 3. Regression test: intentionally overlapping or sub-clearance pickup fails invariant
+  const overlappingState = {
+    levelId: 'TEST_OVERLAP',
+    pickups: [{ id: 'p_bad', x: 200, y: 300, radius: 14, active: true }],
+    blocks: [{ id: 'b_bad', x: 190, y: 290, width: 70, height: 56, value: 5, active: true }],
+  };
+  const badClearance = validatePickupClearance(overlappingState, margin);
+  assert.equal(badClearance.ok, false, 'validatePickupClearance must fail on overlapping pickup');
+  assert.equal(badClearance.violations.length, 1);
+  assert.ok(badClearance.violations[0].clearance < 0, 'clearance must be negative for physical overlap');
+
+  // Sub-clearance test: pickup 2px from block (clearance = 2px < 6px margin)
+  const touchingState = {
+    levelId: 'TEST_MARGIN',
+    pickups: [{ id: 'p_touch', x: 100, y: 200, radius: 14, active: true }],
+    blocks: [{ id: 'b_touch', x: 100 + 14 + 2, y: 180, width: 70, height: 56, value: 5, active: true }],
+  };
+  const touchClearance = validatePickupClearance(touchingState, margin);
+  assert.equal(touchClearance.ok, false, 'validatePickupClearance must fail if clearance < margin');
+  assert.equal(touchClearance.violations.length, 1);
+  assert.ok(Math.abs(touchClearance.violations[0].clearance - 2) < 1e-4);
+});
+

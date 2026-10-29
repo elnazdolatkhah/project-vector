@@ -55,8 +55,15 @@ export function validateGameState(state) {
             }
           }
         }
-        if (wave.pickupCol !== undefined && (!Number.isInteger(wave.pickupCol) || wave.pickupCol < 0 || wave.pickupCol > 7)) {
-          errors.push(`wave[${wIdx}].pickupCol must be integer between 0 and 7`);
+        if (wave.pickupCol !== undefined) {
+          if (!Number.isInteger(wave.pickupCol) || wave.pickupCol < 0 || wave.pickupCol > 7) {
+            errors.push(`wave[${wIdx}].pickupCol must be integer between 0 and 7`);
+          } else {
+            const overlappingBlock = wave.blocks?.find((b) => b.col === wave.pickupCol);
+            if (overlappingBlock) {
+              errors.push(`wave[${wIdx}] pickupCol ${wave.pickupCol} cannot overlap authored block at column ${overlappingBlock.col}`);
+            }
+          }
         }
       }
     }
@@ -89,7 +96,74 @@ export function validateGameState(state) {
       if (typeof b.active !== 'boolean') errors.push(`block[${index}].active must be boolean`);
     }
   }
+
+  const isCampaignStage = Array.isArray(state.waves) || (typeof state.levelId === 'string' && /^L\d+$/.test(state.levelId));
+  if (isCampaignStage && Array.isArray(state.pickups) && Array.isArray(state.blocks)) {
+    const clearanceRes = validatePickupClearance(state, PROGRESSION_CONFIG.pickupClearanceMargin ?? 6);
+    if (!clearanceRes.ok) {
+      for (const v of clearanceRes.violations) {
+        errors.push(
+          `pickup ${v.pickupId} at (${v.pickupPos.x}, ${v.pickupPos.y}) violates clearance margin from block ${v.blockId} (clearance: ${v.clearance.toFixed(2)}px < required: ${v.requiredMargin}px)`
+        );
+      }
+    }
+  }
+
   return { ok: errors.length === 0, errors };
+}
+
+/**
+ * Computes minimum physical clearance between a circular pickup and a rectangular block AABB.
+ * clearance = distance(circleCenter, closestPointOnAABB) - radius
+ * Positive = separated by clear space; 0 = touching; negative = intersecting/embedded.
+ */
+export function computePickupBlockClearance(pickup, block) {
+  const px = pickup.x;
+  const py = pickup.y;
+  const r = pickup.radius ?? PROGRESSION_CONFIG.pickupRadius ?? 14;
+
+  const bx = block.x;
+  const by = block.y;
+  const bw = block.width;
+  const bh = block.height;
+
+  const cx = Math.max(bx, Math.min(px, bx + bw));
+  const cy = Math.max(by, Math.min(py, by + bh));
+
+  const dist = Math.hypot(px - cx, py - cy);
+  return dist - r;
+}
+
+/**
+ * Validates that all active pickups maintain at least clearanceMargin from all active blocks.
+ * Invariant: pickup circle vs expanded block AABB must not intersect.
+ */
+export function validatePickupClearance(gameState, clearanceMargin = (PROGRESSION_CONFIG.pickupClearanceMargin ?? 6)) {
+  const pickups = (gameState?.pickups || []).filter((p) => p.active !== false);
+  const blocks = (gameState?.blocks || []).filter((b) => b.active !== false && b.value > 0);
+  const violations = [];
+
+  for (const pickup of pickups) {
+    for (const block of blocks) {
+      const clearance = computePickupBlockClearance(pickup, block);
+      if (clearance < clearanceMargin) {
+        violations.push({
+          pickupId: pickup.id,
+          pickupPos: { x: pickup.x, y: pickup.y, radius: pickup.radius ?? PROGRESSION_CONFIG.pickupRadius ?? 14 },
+          blockId: block.id,
+          blockRect: { x: block.x, y: block.y, width: block.width, height: block.height },
+          clearance,
+          requiredMargin: clearanceMargin,
+        });
+      }
+    }
+  }
+
+  return {
+    ok: violations.length === 0,
+    clearanceMargin,
+    violations,
+  };
 }
 
 export function createGameState(level) {

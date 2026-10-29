@@ -50,6 +50,7 @@ export const PROGRESSION_CONFIG = Object.freeze({
   playableRight: BOARD_GEOMETRY.playableRight,
   pickupRadius: 14,
   pickupSpawnCadence: 3,
+  pickupClearanceMargin: 6,
   transitionDurationMs: 220,
 });
 

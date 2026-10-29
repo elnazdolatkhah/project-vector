@@ -66,7 +66,7 @@ export const LEVELS = Object.freeze({
     launcher: { x: 360, y: 1180 },
     ballCount: 18,
     pickups: [
-      { id: 'pickup_0', x: columnX(7) + 40, y: 520, radius: 14, active: true },
+      { id: 'pickup_0', x: columnX(7) + 38.75, y: 454, radius: 14, active: true },
     ],
     blocks: [
       ...row('A', 235, [8, 9, 10, 12, 12, 10, 9, 8]),
@@ -99,7 +99,7 @@ export const LEVELS = Object.freeze({
     launcher: { x: 360, y: 1180 },
     ballCount: 18,
     pickups: [
-      { id: 'pickup_0', x: columnX(7) + 40, y: 520, radius: 14, active: true },
+      { id: 'pickup_0', x: columnX(7) + 40, y: 446, radius: 14, active: true },
     ],
     blocks: [
       ...row('A', 220, [10, 9, 8, 8, 8, 8, 9, 10]),
@@ -138,7 +138,7 @@ export const LEVELS = Object.freeze({
     launcher: { x: 360, y: 1180 },
     ballCount: 20,
     pickups: [
-      { id: 'pickup_0', x: columnX(5) + 40, y: 400, radius: 14, active: true },
+      { id: 'pickup_0', x: columnX(0) + 38.75, y: 460, radius: 14, active: true },
     ],
     blocks: [
       ...row('A', 230, [14, 12, 10, 8, 8, 10, 12, 14]),
@@ -151,7 +151,7 @@ export const LEVELS = Object.freeze({
       {
         intent: 'branch-choice-destruction-vs-economy',
         blocks: [{ col: 0, hp: 14 }, { col: 1, hp: 12 }, { col: 2, hp: 10 }, { col: 5, hp: 6 }, { col: 6, hp: 6 }],
-        pickupCol: 0,
+        pickupCol: 7,
       },
       {
         intent: 'asymmetric-board-pressure',
@@ -176,34 +176,34 @@ export const LEVELS = Object.freeze({
     launcher: { x: 360, y: 1180 },
     ballCount: 20,
     pickups: [
-      { id: 'pickup_0', x: columnX(7) + 40, y: 350, radius: 14, active: true },
+      { id: 'pickup_0', x: columnX(2) + 38.75, y: 500, radius: 14, active: true },
     ],
     blocks: [
       ...row('A', 220, [16, 15, 14, 14, 14, 14, 15, 16]),
       ...row('B', 288, [12, 11, 10, 18, 18, 10, 11], halfPitch),
       ...row('C', 356, [10, 9, 8, 16, 8, 9, 10, 11]),
-      block('P0', (BOARD_GEOMETRY.playableLeft + BOARD_GEOMETRY.playableRight - 92) / 2, 446, 92, 44, 24),
+      block('P0', (BOARD_GEOMETRY.playableLeft + BOARD_GEOMETRY.playableRight - 92) / 2, 446, 92, 44, 18),
     ],
     waves: [
       {
         intent: 'precision-slot-col3',
-        blocks: [{ col: 0, hp: 14 }, { col: 1, hp: 12 }, { col: 2, hp: 12 }, { col: 4, hp: 12 }, { col: 5, hp: 12 }, { col: 6, hp: 12 }, { col: 7, hp: 14 }],
+        blocks: [{ col: 0, hp: 9 }, { col: 1, hp: 8 }, { col: 2, hp: 8 }, { col: 4, hp: 8 }, { col: 5, hp: 8 }, { col: 6, hp: 8 }, { col: 7, hp: 9 }],
       },
       {
         intent: 'dual-precision-slits',
-        blocks: [{ col: 0, hp: 12 }, { col: 2, hp: 10 }, { col: 3, hp: 10 }, { col: 4, hp: 10 }, { col: 5, hp: 10 }, { col: 7, hp: 12 }],
+        blocks: [{ col: 0, hp: 8 }, { col: 2, hp: 7 }, { col: 3, hp: 7 }, { col: 4, hp: 7 }, { col: 5, hp: 7 }, { col: 7, hp: 8 }],
       },
       {
         intent: 'tight-channel-offset',
-        blocks: [{ col: 1, hp: 12 }, { col: 2, hp: 12 }, { col: 3, hp: 12 }, { col: 5, hp: 12 }, { col: 6, hp: 12 }, { col: 7, hp: 12 }],
+        blocks: [{ col: 1, hp: 8 }, { col: 2, hp: 8 }, { col: 3, hp: 8 }, { col: 5, hp: 8 }, { col: 6, hp: 8 }, { col: 7, hp: 8 }],
       },
       {
         intent: 'danger-pressure-precision-gates',
-        blocks: [{ col: 0, hp: 12 }, { col: 1, hp: 12 }, { col: 3, hp: 12 }, { col: 4, hp: 12 }, { col: 6, hp: 12 }, { col: 7, hp: 12 }],
+        blocks: [{ col: 0, hp: 8 }, { col: 1, hp: 8 }, { col: 3, hp: 8 }, { col: 4, hp: 8 }, { col: 6, hp: 8 }, { col: 7, hp: 8 }],
       },
       {
         intent: 'final-precision-breach',
-        blocks: [{ col: 0, hp: 10 }, { col: 1, hp: 10 }, { col: 2, hp: 10 }, { col: 5, hp: 10 }, { col: 6, hp: 10 }, { col: 7, hp: 10 }],
+        blocks: [{ col: 0, hp: 6 }, { col: 1, hp: 6 }, { col: 2, hp: 6 }, { col: 5, hp: 6 }, { col: 6, hp: 6 }, { col: 7, hp: 6 }],
       },
     ],
   },
