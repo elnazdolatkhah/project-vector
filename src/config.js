@@ -9,7 +9,7 @@ export const PHYSICS_CONFIG = Object.freeze({
   maxSimulationSteps: 15000,
   maxSimulationTime: 250,
   collisionEpsilon: 0.0001,
-  maxCollisionsPerStep: 8,
+  maxCollisionsPerStep: 32,
 });
 
 // Canonical player aim domain = upward hemisphere, 5°–175°.

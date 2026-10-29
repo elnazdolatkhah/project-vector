@@ -25,6 +25,7 @@ export const App: React.FC = () => {
   const animFrameRef = useRef<number | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+  const lifecycleTokenRef = useRef(0);
 
   // DOM refs for direct, zero-overhead high-frequency updates
   const angleTextRef = useRef<HTMLDivElement | null>(null);
@@ -146,6 +147,12 @@ export const App: React.FC = () => {
   // Update future summary DOM text directly
   const updateFutureDOM = useCallback((p: FuturePreview | null, _r: number, calculating = false) => {
     if (!futureTextRef.current) return;
+    if (runningRef.current || transitioningRef.current) {
+      futureTextRef.current.innerHTML = '';
+      futureTextRef.current.style.opacity = '0';
+      return;
+    }
+    futureTextRef.current.style.opacity = '1';
     if (stateRef.current.stageStatus === 'failed') {
       futureTextRef.current.innerHTML = '<span class="text-rose-400 font-semibold tracking-wider">GAME OVER · DANGER REACHED</span>';
       return;
@@ -199,15 +206,18 @@ export const App: React.FC = () => {
 
   // Schedule authoritative future recomputation with debounce
   const scheduleFutureRecomputation = useCallback((targetAngle: number, immediate = false) => {
-    if (runningRef.current) return;
+    if (runningRef.current || transitioningRef.current) return;
     if (previewTimerRef.current) {
       clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
     }
 
+    const currentToken = lifecycleTokenRef.current;
     if (immediate) {
       computeAuthoritativeFuture(stateRef.current, targetAngle);
     } else {
       previewTimerRef.current = setTimeout(() => {
+        if (lifecycleTokenRef.current !== currentToken) return;
         computeAuthoritativeFuture(stateRef.current, targetAngle);
       }, 35);
     }
@@ -228,11 +238,25 @@ export const App: React.FC = () => {
 
   // Switch level
   const setLevel = useCallback((newIndex: number) => {
-    if (runningRef.current && animFrameRef.current) {
+    lifecycleTokenRef.current += 1;
+
+    if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
     }
-    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
-    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
+    pointerIdRef.current = null;
     lastAngleMoveTimeRef.current = 0;
 
     const idx = (newIndex + levelKeys.length) % levelKeys.length;
@@ -242,6 +266,7 @@ export const App: React.FC = () => {
     stateRef.current = newState;
     setIsRunning(false);
     runningRef.current = false;
+    setPlaybackTier('NORMAL');
     setIsTransitioning(false);
     transitioningRef.current = false;
     setIsAiming(false);
@@ -279,8 +304,21 @@ export const App: React.FC = () => {
 
   // Launch turn simulation with calibrated visual hierarchy and volley-end timing
   const playTurn = useCallback((selectedAngle: number) => {
-    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
-    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    lifecycleTokenRef.current += 1;
+    const currentToken = lifecycleTokenRef.current;
+
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
 
     setIsRunning(true);
     runningRef.current = true;
@@ -327,6 +365,7 @@ export const App: React.FC = () => {
     const blockMap = new Map<string, Block>(stateRef.current.blocks.map((b) => [b.id, b]));
 
     function frame(now: number) {
+      if (lifecycleTokenRef.current !== currentToken) return;
       const rawDt = Math.min((now - lastTimeRef.current) / 1000, 0.08); // Bound dt to avoid spiral
       lastTimeRef.current = now;
 
@@ -532,6 +571,7 @@ export const App: React.FC = () => {
         transitioningRef.current = true;
 
         function transitionLoop(transNow: number) {
+          if (lifecycleTokenRef.current !== currentToken) return;
           const elapsed = transNow - transStart;
           if (elapsed < transDuration) {
             renderCurrent();
@@ -565,7 +605,8 @@ export const App: React.FC = () => {
   const isTerminalState = () => stateRef.current.stageStatus !== 'active';
 
   const handlePointerDown = (event: React.PointerEvent<HTMLCanvasElement>) => {
-    if (runningRef.current || transitioningRef.current || isTerminalState()) return;
+    // Reject second pointer / multi-touch, or down during running/transition/terminal state
+    if (aimingRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
 
     if (!hasInteracted) {
       setHasInteracted(true);
@@ -579,30 +620,40 @@ export const App: React.FC = () => {
     setIsAiming(true);
     aimingRef.current = true;
     pointerIdRef.current = event.pointerId;
-    (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    try {
+      (event.target as HTMLElement).setPointerCapture(event.pointerId);
+    } catch {
+      // Safe fallback
+    }
 
     const newAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = newAngle;
     lastScrubAngleRef.current = newAngle;
     lastAngleMoveTimeRef.current = performance.now();
 
-    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
-    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
 
     // Fade in Future Echo if player holds stable angle for ~85-120ms
+    const currentToken = lifecycleTokenRef.current;
     echoCheckTimerRef.current = setTimeout(() => {
-      if (aimingRef.current) {
-        const startFade = performance.now();
-        const duration = 90;
-        function stepFade(fadeNow: number) {
-          if (!aimingRef.current) return;
-          renderCurrent();
-          if (fadeNow - startFade < duration) {
-            echoAnimFrameRef.current = requestAnimationFrame(stepFade);
-          }
+      if (lifecycleTokenRef.current !== currentToken || !aimingRef.current) return;
+      const startFade = performance.now();
+      const duration = 90;
+      function stepFade(fadeNow: number) {
+        if (lifecycleTokenRef.current !== currentToken || !aimingRef.current) return;
+        renderCurrent();
+        if (fadeNow - startFade < duration) {
+          echoAnimFrameRef.current = requestAnimationFrame(stepFade);
         }
-        echoAnimFrameRef.current = requestAnimationFrame(stepFade);
       }
+      echoAnimFrameRef.current = requestAnimationFrame(stepFade);
     }, 85);
 
     if (angleTextRef.current) {
@@ -629,23 +680,29 @@ export const App: React.FC = () => {
     }
     angleRef.current = newAngle;
 
-    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
-    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
 
     // Schedule reveal timer when scrubbing pauses
+    const currentToken = lifecycleTokenRef.current;
     echoCheckTimerRef.current = setTimeout(() => {
-      if (aimingRef.current) {
-        const startFade = performance.now();
-        const duration = 90;
-        function stepFade(fadeNow: number) {
-          if (!aimingRef.current) return;
-          renderCurrent();
-          if (fadeNow - startFade < duration) {
-            echoAnimFrameRef.current = requestAnimationFrame(stepFade);
-          }
+      if (lifecycleTokenRef.current !== currentToken || !aimingRef.current) return;
+      const startFade = performance.now();
+      const duration = 90;
+      function stepFade(fadeNow: number) {
+        if (lifecycleTokenRef.current !== currentToken || !aimingRef.current) return;
+        renderCurrent();
+        if (fadeNow - startFade < duration) {
+          echoAnimFrameRef.current = requestAnimationFrame(stepFade);
         }
-        echoAnimFrameRef.current = requestAnimationFrame(stepFade);
       }
+      echoAnimFrameRef.current = requestAnimationFrame(stepFade);
     }, 85);
 
     // Zero-overhead DOM angle update
@@ -664,8 +721,24 @@ export const App: React.FC = () => {
   const handlePointerUp = (event: React.PointerEvent<HTMLCanvasElement>) => {
     if (!aimingRef.current || event.pointerId !== pointerIdRef.current || runningRef.current || transitioningRef.current || isTerminalState()) return;
 
-    if (echoCheckTimerRef.current) clearTimeout(echoCheckTimerRef.current);
-    if (echoAnimFrameRef.current) cancelAnimationFrame(echoAnimFrameRef.current);
+    try {
+      (event.target as HTMLElement).releasePointerCapture(event.pointerId);
+    } catch {
+      // Safe fallback
+    }
+
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
 
     const finalAngle = pointerToAngle(event.clientX, event.clientY);
     angleRef.current = finalAngle;
@@ -679,22 +752,38 @@ export const App: React.FC = () => {
     aimingRef.current = false;
     pointerIdRef.current = null;
 
-    if (previewTimerRef.current) {
-      clearTimeout(previewTimerRef.current);
-    }
-
     // Immediate launch with 0 input latency
     playTurn(finalAngle);
     event.preventDefault();
   };
 
   const handlePointerCancel = () => {
+    if (echoCheckTimerRef.current) {
+      clearTimeout(echoCheckTimerRef.current);
+      echoCheckTimerRef.current = null;
+    }
+    if (echoAnimFrameRef.current) {
+      cancelAnimationFrame(echoAnimFrameRef.current);
+      echoAnimFrameRef.current = null;
+    }
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
+    if (pointerIdRef.current !== null && canvasRef.current) {
+      try {
+        canvasRef.current.releasePointerCapture(pointerIdRef.current);
+      } catch {
+        // Safe fallback
+      }
+    }
+    pointerIdRef.current = null;
     setIsAiming(false);
     aimingRef.current = false;
-    pointerIdRef.current = null;
     if (angleTextRef.current) {
       angleTextRef.current.classList.remove('angle-active');
     }
+    renderCurrent();
   };
 
   // Window resize & visualViewport handling
@@ -706,15 +795,26 @@ export const App: React.FC = () => {
     }
 
     return () => {
+      lifecycleTokenRef.current += 1;
       window.removeEventListener('resize', resizeCanvas);
       if (window.visualViewport) {
         window.visualViewport.removeEventListener('resize', resizeCanvas);
       }
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current);
+        animFrameRef.current = null;
       }
       if (previewTimerRef.current) {
         clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = null;
+      }
+      if (echoCheckTimerRef.current) {
+        clearTimeout(echoCheckTimerRef.current);
+        echoCheckTimerRef.current = null;
+      }
+      if (echoAnimFrameRef.current) {
+        cancelAnimationFrame(echoAnimFrameRef.current);
+        echoAnimFrameRef.current = null;
       }
     };
   }, [resizeCanvas]);
