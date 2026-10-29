@@ -6,7 +6,8 @@ export const PHYSICS_CONFIG = Object.freeze({
   gravity: 0,
   fixedDt: 1 / 60,
   spawnInterval: 0.08,
-  maxSimulationTime: 75,
+  maxSimulationSteps: 15000,
+  maxSimulationTime: 250,
   collisionEpsilon: 0.0001,
   maxCollisionsPerStep: 8,
 });

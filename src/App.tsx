@@ -14,6 +14,7 @@ import {
 } from './render/canvasRenderer';
 import { viewToWorld } from './render/viewport.js';
 import type { GameState, FuturePreview, Block } from './types.js';
+import { evaluatePresentationSpeed } from './physics/presentationScheduler.js';
 
 type LevelKey = keyof typeof LEVELS;
 const levelKeys = Object.keys(LEVELS) as LevelKey[];
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
   );
   const [isAiming, setIsAiming] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [playbackTier, setPlaybackTier] = useState<'NORMAL' | 'TAIL' | 'RAPID_TAIL'>('NORMAL');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(() => {
     try {
@@ -297,8 +299,8 @@ export const App: React.FC = () => {
       duration: 110,
     };
 
-    // Instantiate authoritative simulation
-    const sim = new Simulation(stateRef.current, selectedAngle, undefined, { record: false });
+    // Authoritative Simulation: identical canonical configuration shared across Gameplay, Preview, Solver, and Replay
+    const sim = new Simulation(stateRef.current, selectedAngle, PHYSICS_CONFIG, { record: false });
 
     // Presentation stepping & interpolation state
     const fixedDt = PHYSICS_CONFIG.fixedDt; // Canonical 1/60s
@@ -307,6 +309,11 @@ export const App: React.FC = () => {
     prevBallsMapRef.current.clear();
     hitEffectsRef.current.clear();
     destructionEffectsRef.current = [];
+
+    const volleyStartTime = performance.now();
+    let currentTier: 'NORMAL' | 'TAIL' | 'RAPID_TAIL' = 'NORMAL';
+    let tail2xStartTime: number | null = null;
+    let currentPresentationSpeed = 1.0;
 
     interface ReturningBall {
       id: string;
@@ -320,9 +327,36 @@ export const App: React.FC = () => {
     const blockMap = new Map<string, Block>(stateRef.current.blocks.map((b) => [b.id, b]));
 
     function frame(now: number) {
-      const dt = Math.min((now - lastTimeRef.current) / 1000, 0.08); // Bound dt to avoid spiral
+      const rawDt = Math.min((now - lastTimeRef.current) / 1000, 0.08); // Bound dt to avoid spiral
       lastTimeRef.current = now;
-      accumulatorRef.current += dt;
+
+      // Evaluate presentation acceleration dynamically for long volley tails
+      const elapsedRealSeconds = (now - volleyStartTime) / 1000;
+      const activeBallsCount = sim.balls.filter((b) => b.active).length;
+      const exitedBallsCount = sim.balls.filter((b) => b.spawned && !b.active).length;
+      const totalBalls = sim.balls.length;
+      const allSpawned = sim.balls.every((b) => b.spawned);
+
+      const speedEval = evaluatePresentationSpeed({
+        elapsedRealSeconds,
+        activeBallsCount,
+        exitedBallsCount,
+        totalBalls,
+        allSpawned,
+        currentTier,
+        tail2xStartTime,
+      });
+
+      if (currentTier === 'NORMAL' && speedEval.tier === 'TAIL') {
+        tail2xStartTime = elapsedRealSeconds;
+      }
+      if (speedEval.tier !== currentTier) {
+        currentTier = speedEval.tier;
+        setPlaybackTier(speedEval.tier);
+      }
+      currentPresentationSpeed = speedEval.speed;
+
+      accumulatorRef.current += rawDt * currentPresentationSpeed;
 
       // Authoritative fixed-step progression
       while (accumulatorRef.current >= fixedDt && !sim.finished) {
@@ -360,12 +394,13 @@ export const App: React.FC = () => {
             const targetX = clampLauncherX(sim.firstExitX != null ? sim.firstExitX : stateRef.current.launcher.x);
             const exitX = typeof ev.x === 'number' ? ev.x : targetX;
             const startX = clampLauncherX(exitX);
+            const baseDuration = Math.abs(startX - targetX) < 4 ? 40 : 160;
             returningBalls.push({
               id: ev.ballId,
               startX,
               targetX,
               startTime: now,
-              duration: Math.abs(startX - targetX) < 4 ? 40 : 160,
+              duration: baseDuration / currentPresentationSpeed,
             });
           }
         }
@@ -453,9 +488,11 @@ export const App: React.FC = () => {
         // Volley End State: Authoritative turn completion
         const result = sim.result();
 
-        if (result.timedOut) {
-          // Simulation timed out: abort progression and restore ready state without advancing board
+        if (!result.completed || result.watchdogTriggered || result.timedOut) {
+          // Engine watchdog diagnostic: abort progression and restore ready state without advancing board
+          console.error('[Engine Watchdog] Simulation exceeded deterministic safety guard without natural completion.', result);
           setIsRunning(false);
+          setPlaybackTier('NORMAL');
           runningRef.current = false;
           hitEffectsRef.current.clear();
           destructionEffectsRef.current = [];
@@ -473,6 +510,7 @@ export const App: React.FC = () => {
         stateRef.current = nextState;
 
         setIsRunning(false);
+        setPlaybackTier('NORMAL');
         runningRef.current = false;
         hitEffectsRef.current.clear();
         destructionEffectsRef.current = [];
@@ -720,6 +758,13 @@ export const App: React.FC = () => {
           ›
         </button>
       </header>
+
+      {/* Subtle rapid tail 6x acceleration badge */}
+      {isRunning && playbackTier === 'RAPID_TAIL' && (
+        <div className="rapid-tail-badge" aria-label="Rapid tail acceleration active">
+          6×
+        </div>
+      )}
 
       {/* Onboarding hint: renders only before first user interaction */}
       {!hasInteracted && (

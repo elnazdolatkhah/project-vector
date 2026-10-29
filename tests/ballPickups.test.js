@@ -301,12 +301,30 @@ test('13: nextBallCount strictly equals currentBallCount + ballPickupsCollected 
   const replayNextState = applyTurnResult(l03State, replaySim);
   assert.equal(replayNextState.balls.available, 19, 'replayed applyTurnResult balls.available must be 19');
 
-  // 2. Authoritative check on timeout: timed-out candidate must NOT advance ball count
-  const l03Timeout = previewFuture(l03State, 23.5, { record: false });
-  assert.equal(l03Timeout.timedOut, true, 'angle 23.5° times out in L03');
-  assert.equal(l03Timeout.completed, false, 'angle 23.5° did not complete normally');
-  assert.equal(l03Timeout.nextBallCount, 18, 'timed-out future must not advance nextBallCount');
-  assert.equal(l03Timeout.nextGameState.balls.available, 18, 'timed-out nextGameState.balls.available must remain 18');
+  // 2. Authoritative check on legal long volley (23.5° in L03 takes ~81.6s and naturally completes)
+  const l03_23 = previewFuture(l03State, 23.5, { record: false });
+  assert.equal(l03_23.completed, true, 'angle 23.5° naturally resolves to completion');
+  assert.equal(l03_23.timedOut, false, 'angle 23.5° must not time out');
+  assert.equal(l03_23.ballPickupsCollected, 1, 'must collect 1 pickup');
+  assert.equal(l03_23.nextBallCount, 19, 'nextBallCount must equal 18 + 1 = 19');
+  assert.equal(l03_23.nextGameState.balls.available, 19, 'nextGameState.balls.available must be 19');
+
+  // 3. Authoritative check on uncompleted / watchdog failure: must NOT advance ball count
+  const forcedTimeoutResult = {
+    angleDeg: 45,
+    timedOut: true,
+    watchdogTriggered: true,
+    completed: false,
+    finalBlocks: l03State.blocks,
+    stats: { hits: 1, destroyed: 0, ballsExited: 0, ballPickupsCollected: 1 },
+    ballPickupsCollected: 1,
+    collectedPickups: ['pickup_0'],
+    firstExitX: null,
+    nextLauncher: { x: l03State.launcher.x, y: l03State.launcher.y },
+    score: 1,
+  };
+  const timedOutNextState = applyTurnResult(l03State, forcedTimeoutResult);
+  assert.equal(timedOutNextState.balls.available, 18, 'watchdog/timed-out result must not advance balls.available');
 
   // 3. Across all campaign stages L01–L05, verify formula holds on all completed angles
   for (const stageKey of ['L01', 'L02', 'L03', 'L04', 'L05']) {

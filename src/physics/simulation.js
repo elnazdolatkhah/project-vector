@@ -47,6 +47,8 @@ export class Simulation {
     this.stats = { hits: 0, destroyed: 0, ballsExited: 0, ballPickupsCollected: 0 };
     this.firstExitX = null;
     this.timedOut = false;
+    this.watchdogTriggered = false;
+    this.stepCount = 0;
     this.trajectories = record ? {} : null;
     this.events = [];
   }
@@ -77,31 +79,44 @@ export class Simulation {
     }
 
     this.time += cfg.fixedDt;
-    if (this.time > cfg.maxSimulationTime) {
+    this.stepCount += 1;
+
+    const maxSteps = Math.min(
+      this.config.maxSimulationSteps ?? 15000,
+      this.config.maxSimulationTime != null
+        ? Math.ceil(this.config.maxSimulationTime / cfg.fixedDt)
+        : 15000
+    );
+
+    if (this.stepCount > maxSteps) {
+      this.watchdogTriggered = true;
       this.timedOut = true;
       this.firstExitX = null;
-      for (const ball of this.balls) {
-        ball.active = false;
-        ball.spawned = true;
+      if (!this.events.some((e) => e.type === 'SimulationWatchdogExceeded')) {
+        this.events.push({
+          t: round6(this.time),
+          type: 'SimulationWatchdogExceeded',
+          stepCount: this.stepCount,
+        });
       }
-      this.events.push({ t: round6(this.time), type: 'SimulationTimeout' });
+      if (!this.events.some((e) => e.type === 'SimulationTimeout')) {
+        this.events.push({ t: round6(this.time), type: 'SimulationTimeout' });
+      }
     }
-    this.finished = this.allDone();
+    this.finished = this.allDone() || this.watchdogTriggered;
     return this.finished;
   }
 
   runToCompletion() {
-    let guard = 0;
-    while (!this.finished && guard < 1e6) {
+    while (!this.finished) {
       this.step();
-      guard += 1;
     }
-    if (guard >= 1e6) throw new Error('Simulation guard exceeded');
     return this.result();
   }
 
   result() {
-    const firstExitX = this.timedOut ? null : this.firstExitX;
+    const completed = !this.watchdogTriggered && !this.timedOut && this.allDone();
+    const firstExitX = completed ? this.firstExitX : null;
     const nextLauncherX = firstExitX != null
       ? clampLauncherX(firstExitX, this.config)
       : this.launcher.x;
@@ -109,7 +124,10 @@ export class Simulation {
     return {
       angleDeg: this.angleDeg,
       timedOut: this.timedOut,
-      completed: !this.timedOut,
+      watchdogTriggered: this.watchdogTriggered,
+      completed,
+      stepCount: this.stepCount,
+      unresolvedBalls: this.balls.filter((b) => b.active).map((b) => b.id),
       finalBlocks: this.blocks.map((b) => ({ ...b })),
       finalPickups: this.pickups.map((p) => ({ ...p })),
       collectedPickups: Array.from(this.collectedPickupIds),

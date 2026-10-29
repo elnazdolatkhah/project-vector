@@ -3,6 +3,20 @@ export interface Vector2D {
   y: number;
 }
 
+export interface PhysicsConfig {
+  canvasWidth: number;
+  canvasHeight: number;
+  ballRadius: number;
+  ballSpeed: number;
+  gravity: number;
+  fixedDt: number;
+  spawnInterval: number;
+  maxSimulationSteps?: number;
+  maxSimulationTime: number;
+  collisionEpsilon: number;
+  maxCollisionsPerStep: number;
+}
+
 export interface Block {
   id: string;
   x: number;
@@ -108,7 +122,10 @@ export interface SimulationEvent {
 export interface SimulationResult {
   angleDeg: number;
   timedOut?: boolean;
+  watchdogTriggered?: boolean;
   completed?: boolean;
+  stepCount?: number;
+  unresolvedBalls?: string[];
   finalBlocks: Block[];
   finalPickups?: BallPickup[];
   collectedPickups?: string[];
