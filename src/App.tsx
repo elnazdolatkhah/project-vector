@@ -2,8 +2,17 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { INPUT_CONFIG, PHYSICS_CONFIG } from './config.js';
 import { createGameState, applyTurnResult, clampLauncherX } from './domain/gameState.js';
 import { Simulation } from './physics/simulation.js';
-import { previewFuture, analyzeRobustness } from './future/futureEngine.js';
+import { previewFuture } from './future/futureEngine.js';
 import { LEVELS } from './levels/levels.js';
+
+export interface AuthoritativePreviewRecord {
+  angle: number;
+  preview: FuturePreview;
+  lifecycleToken: number;
+  turn: number;
+  levelId: string;
+  timestamp: number;
+}
 import {
   CanvasRenderer,
   type VisualBall,
@@ -75,7 +84,9 @@ export const App: React.FC = () => {
 
   const angleRef = useRef(45.0);
   const futureRef = useRef<FuturePreview | null>(null);
-  const robustnessRef = useRef<number>(100);
+  const authoritativePreviewRef = useRef<AuthoritativePreviewRecord | null>(null);
+  const deferredLaunchFrameRef = useRef<number | null>(null);
+  const deferredLaunchTokenRef = useRef<number | null>(null);
 
   // Future Echo temporal reveal timing: fades in after holding angle stable for ~80-120ms
   const lastAngleMoveTimeRef = useRef<number>(0);
@@ -145,7 +156,7 @@ export const App: React.FC = () => {
   }, []);
 
   // Update future summary DOM text directly
-  const updateFutureDOM = useCallback((p: FuturePreview | null, _r: number, calculating = false) => {
+  const updateFutureDOM = useCallback((p: FuturePreview | null, calculating = false) => {
     if (!futureTextRef.current) return;
     if (runningRef.current || transitioningRef.current) {
       futureTextRef.current.innerHTML = '';
@@ -181,7 +192,6 @@ export const App: React.FC = () => {
     try {
       const prevFuture = futureRef.current;
       const p = previewFuture(stateToPreview, targetAngle, { record: true }) as FuturePreview;
-      const r = analyzeRobustness(stateToPreview, targetAngle).percent;
 
       // Clean 80ms trajectory cross-fade transition between authoritative future updates
       if (prevFuture?.trajectories?.ball0 && p.trajectories?.ball0) {
@@ -196,11 +206,25 @@ export const App: React.FC = () => {
       }
 
       futureRef.current = p;
-      robustnessRef.current = r;
-      updateFutureDOM(p, r, false);
+      authoritativePreviewRef.current = {
+        angle: targetAngle,
+        preview: p,
+        lifecycleToken: lifecycleTokenRef.current,
+        turn: stateToPreview.turn,
+        levelId: stateToPreview.levelId,
+        timestamp: performance.now(),
+      };
+
+      if (canvasRef.current) {
+        canvasRef.current.dataset.visiblePreviewAngle = targetAngle.toFixed(4);
+        canvasRef.current.dataset.visiblePreviewDamage = String(p.damage);
+        canvasRef.current.dataset.visiblePreviewDestroyed = String(p.destroyed);
+      }
+
+      updateFutureDOM(p, false);
       renderCurrent();
     } catch {
-      updateFutureDOM(null, 100, false);
+      updateFutureDOM(null, false);
     }
   }, [renderCurrent, updateFutureDOM]);
 
@@ -256,6 +280,11 @@ export const App: React.FC = () => {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
+    if (deferredLaunchFrameRef.current !== null) {
+      cancelAnimationFrame(deferredLaunchFrameRef.current);
+      deferredLaunchFrameRef.current = null;
+    }
+    deferredLaunchTokenRef.current = null;
     pointerIdRef.current = null;
     lastAngleMoveTimeRef.current = 0;
 
@@ -272,6 +301,21 @@ export const App: React.FC = () => {
     setIsAiming(false);
     aimingRef.current = false;
     futureRef.current = null;
+    authoritativePreviewRef.current = null;
+    if (canvasRef.current) {
+      delete canvasRef.current.dataset.visiblePreviewAngle;
+      delete canvasRef.current.dataset.visiblePreviewDamage;
+      delete canvasRef.current.dataset.visiblePreviewDestroyed;
+      delete canvasRef.current.dataset.renderedReleasePreviewAngle;
+      delete canvasRef.current.dataset.renderedReleasePreviewDamage;
+      delete canvasRef.current.dataset.renderedReleasePreviewDestroyed;
+      delete canvasRef.current.dataset.committedAngle;
+      delete canvasRef.current.dataset.committedPreviewDamage;
+      delete canvasRef.current.dataset.committedPreviewDestroyed;
+      delete canvasRef.current.dataset.lastTurnDamage;
+      delete canvasRef.current.dataset.lastTurnDestroyed;
+      delete canvasRef.current.dataset.lastTurnPickups;
+    }
     hitEffectsRef.current.clear();
     destructionEffectsRef.current = [];
     launcherRecoilRef.current = null;
@@ -279,6 +323,8 @@ export const App: React.FC = () => {
     trajectoryTransitionRef.current = null;
     boardTransitionRef.current = null;
     readyFadeStartRef.current = performance.now();
+
+    angleRef.current = 45.0;
 
     if (angleTextRef.current) {
       angleTextRef.current.textContent = `${angleRef.current.toFixed(1)}°`;
@@ -323,12 +369,21 @@ export const App: React.FC = () => {
     setIsRunning(true);
     runningRef.current = true;
 
+    if (canvasRef.current) {
+      canvasRef.current.dataset.committedAngle = selectedAngle.toFixed(4);
+      if (authoritativePreviewRef.current && Math.abs(authoritativePreviewRef.current.angle - selectedAngle) < 1e-4) {
+        canvasRef.current.dataset.committedPreviewDamage = String(authoritativePreviewRef.current.preview.damage);
+        canvasRef.current.dataset.committedPreviewDestroyed = String(authoritativePreviewRef.current.preview.destroyed);
+      }
+    }
+
     // Instant removal of all prediction visuals on shot commitment (0 residue)
     futureRef.current = null;
+    authoritativePreviewRef.current = null;
     trajectoryTransitionRef.current = null;
     launcherSettleRef.current = null;
     readyFadeStartRef.current = 0;
-    updateFutureDOM(null, 100, true);
+    updateFutureDOM(null, true);
 
     // Subtle launcher compression and release impulse (~110ms)
     launcherRecoilRef.current = {
@@ -544,9 +599,21 @@ export const App: React.FC = () => {
 
         const prevBlocks = stateRef.current.blocks;
         const prevPickups = stateRef.current.pickups;
+        const initialHP = prevBlocks.filter((b) => b.active).reduce((sum, b) => sum + Math.max(0, b.value), 0);
+        const remainingHP = result.finalBlocks.filter((b: Block) => b.active).reduce((sum: number, b: Block) => sum + Math.max(0, b.value), 0);
+        const turnDamage = Math.max(0, initialHP - remainingHP);
+        const turnDestroyed = result.stats.destroyed;
+        const turnPickups = result.ballPickupsCollected ?? result.collectedPickups?.length ?? 0;
+
         const nextState = applyTurnResult(stateRef.current, result);
         setGameState(nextState);
         stateRef.current = nextState;
+
+        if (canvasRef.current) {
+          canvasRef.current.dataset.lastTurnDamage = String(turnDamage);
+          canvasRef.current.dataset.lastTurnDestroyed = String(turnDestroyed);
+          canvasRef.current.dataset.lastTurnPickups = String(turnPickups);
+        }
 
         setIsRunning(false);
         setPlaybackTier('NORMAL');
@@ -588,7 +655,7 @@ export const App: React.FC = () => {
               scheduleFutureRecomputation(angleRef.current, true);
             } else {
               futureRef.current = null;
-              updateFutureDOM(null, 0, false);
+              updateFutureDOM(null, false);
               renderCurrent();
             }
           }
@@ -739,21 +806,88 @@ export const App: React.FC = () => {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
-
-    const finalAngle = pointerToAngle(event.clientX, event.clientY);
-    angleRef.current = finalAngle;
-
-    if (angleTextRef.current) {
-      angleTextRef.current.textContent = `${finalAngle.toFixed(1)}°`;
-      angleTextRef.current.classList.remove('angle-active');
+    if (deferredLaunchFrameRef.current !== null) {
+      cancelAnimationFrame(deferredLaunchFrameRef.current);
+      deferredLaunchFrameRef.current = null;
     }
+    deferredLaunchTokenRef.current = null;
 
     setIsAiming(false);
     aimingRef.current = false;
     pointerIdRef.current = null;
 
-    // Immediate launch with 0 input latency
-    playTurn(finalAngle);
+    // 1. Capture finalReleaseAngle from release coordinates
+    const finalReleaseAngle = pointerToAngle(event.clientX, event.clientY);
+    angleRef.current = finalReleaseAngle;
+
+    // 2. Reuse current authoritative preview if exact match, or compute synchronously
+    const activePreview = authoritativePreviewRef.current;
+    const isPreviewCurrent =
+      activePreview !== null &&
+      activePreview.lifecycleToken === lifecycleTokenRef.current &&
+      activePreview.turn === stateRef.current.turn &&
+      activePreview.levelId === stateRef.current.levelId &&
+      Math.abs(activePreview.angle - finalReleaseAngle) < 1e-4;
+
+    let releasePreview: FuturePreview;
+    if (isPreviewCurrent) {
+      releasePreview = activePreview.preview;
+    } else {
+      releasePreview = previewFuture(stateRef.current, finalReleaseAngle, { record: true }) as FuturePreview;
+      futureRef.current = releasePreview;
+      authoritativePreviewRef.current = {
+        angle: finalReleaseAngle,
+        preview: releasePreview,
+        lifecycleToken: lifecycleTokenRef.current,
+        turn: stateRef.current.turn,
+        levelId: stateRef.current.levelId,
+        timestamp: performance.now(),
+      };
+    }
+
+    // 3. Render trajectory, future summary text, DOM angle text, and dataset attributes for finalReleaseAngle
+    if (angleTextRef.current) {
+      angleTextRef.current.textContent = `${finalReleaseAngle.toFixed(1)}°`;
+      angleTextRef.current.classList.remove('angle-active');
+    }
+    updateFutureDOM(releasePreview, false);
+
+    if (canvasRef.current) {
+      canvasRef.current.dataset.visiblePreviewAngle = finalReleaseAngle.toFixed(4);
+      canvasRef.current.dataset.visiblePreviewDamage = String(releasePreview.damage);
+      canvasRef.current.dataset.visiblePreviewDestroyed = String(releasePreview.destroyed);
+      canvasRef.current.dataset.renderedReleasePreviewAngle = finalReleaseAngle.toFixed(4);
+      canvasRef.current.dataset.renderedReleasePreviewDamage = String(releasePreview.damage);
+      canvasRef.current.dataset.renderedReleasePreviewDestroyed = String(releasePreview.destroyed);
+    }
+
+    // Render trajectory and prediction visual at least once before physical launch begins
+    renderCurrent();
+
+    // 4. Defer physical launch to the next animation frame (post-render boundary)
+    const currentToken = lifecycleTokenRef.current;
+    const currentTurn = stateRef.current.turn;
+    const currentLevelId = stateRef.current.levelId;
+
+    deferredLaunchTokenRef.current = currentToken;
+    deferredLaunchFrameRef.current = requestAnimationFrame(() => {
+      deferredLaunchFrameRef.current = null;
+      if (
+        deferredLaunchTokenRef.current !== currentToken ||
+        lifecycleTokenRef.current !== currentToken ||
+        runningRef.current ||
+        transitioningRef.current ||
+        stateRef.current.stageStatus !== 'active' ||
+        stateRef.current.turn !== currentTurn ||
+        stateRef.current.levelId !== currentLevelId
+      ) {
+        deferredLaunchTokenRef.current = null;
+        return;
+      }
+      deferredLaunchTokenRef.current = null;
+      playTurn(finalReleaseAngle);
+    });
+
     event.preventDefault();
   };
 
@@ -770,6 +904,11 @@ export const App: React.FC = () => {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
+    if (deferredLaunchFrameRef.current !== null) {
+      cancelAnimationFrame(deferredLaunchFrameRef.current);
+      deferredLaunchFrameRef.current = null;
+    }
+    deferredLaunchTokenRef.current = null;
     if (pointerIdRef.current !== null && canvasRef.current) {
       try {
         canvasRef.current.releasePointerCapture(pointerIdRef.current);
@@ -808,6 +947,11 @@ export const App: React.FC = () => {
         clearTimeout(previewTimerRef.current);
         previewTimerRef.current = null;
       }
+      if (deferredLaunchFrameRef.current !== null) {
+        cancelAnimationFrame(deferredLaunchFrameRef.current);
+        deferredLaunchFrameRef.current = null;
+      }
+      deferredLaunchTokenRef.current = null;
       if (echoCheckTimerRef.current) {
         clearTimeout(echoCheckTimerRef.current);
         echoCheckTimerRef.current = null;
