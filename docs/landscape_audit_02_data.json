@@ -1,0 +1,4368 @@
+{
+  "policyResults": {
+    "L01": {
+      "random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "2.00"
+      },
+      "median_quality": {
+        "winRate": 0,
+        "failRate": 100,
+        "medianTurns": "N/A",
+        "avgPickups": "2.00"
+      },
+      "top20_random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      },
+      "greedy_damage": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      },
+      "greedy_destruction": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      },
+      "pickup_seeking": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      },
+      "danger_preserving": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      },
+      "solver_strong": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "2.00"
+      }
+    },
+    "L02": {
+      "random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 12,
+        "avgPickups": "1.00"
+      },
+      "median_quality": {
+        "winRate": 0,
+        "failRate": 100,
+        "medianTurns": "N/A",
+        "avgPickups": "1.00"
+      },
+      "top20_random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "greedy_damage": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 5,
+        "avgPickups": "1.00"
+      },
+      "greedy_destruction": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "1.00"
+      },
+      "pickup_seeking": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "1.00"
+      },
+      "danger_preserving": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "1.00"
+      },
+      "solver_strong": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 4,
+        "avgPickups": "1.00"
+      }
+    },
+    "L03": {
+      "random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 9,
+        "avgPickups": "1.00"
+      },
+      "median_quality": {
+        "winRate": 0,
+        "failRate": 100,
+        "medianTurns": "N/A",
+        "avgPickups": "1.00"
+      },
+      "top20_random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "greedy_damage": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "greedy_destruction": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "pickup_seeking": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "danger_preserving": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "solver_strong": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      }
+    },
+    "L04": {
+      "random": {
+        "winRate": 75,
+        "failRate": 25,
+        "medianTurns": 9,
+        "avgPickups": "2.00"
+      },
+      "median_quality": {
+        "winRate": 0,
+        "failRate": 100,
+        "medianTurns": "N/A",
+        "avgPickups": "2.00"
+      },
+      "top20_random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "2.00"
+      },
+      "greedy_damage": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "2.00"
+      },
+      "greedy_destruction": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 5,
+        "avgPickups": "2.00"
+      },
+      "pickup_seeking": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "2.00"
+      },
+      "danger_preserving": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "2.00"
+      },
+      "solver_strong": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "2.00"
+      }
+    },
+    "L05": {
+      "random": {
+        "winRate": 50,
+        "failRate": 50,
+        "medianTurns": 10,
+        "avgPickups": "1.00"
+      },
+      "median_quality": {
+        "winRate": 0,
+        "failRate": 100,
+        "medianTurns": "N/A",
+        "avgPickups": "1.00"
+      },
+      "top20_random": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 8,
+        "avgPickups": "1.00"
+      },
+      "greedy_damage": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 8,
+        "avgPickups": "1.00"
+      },
+      "greedy_destruction": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "1.00"
+      },
+      "pickup_seeking": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "1.00"
+      },
+      "danger_preserving": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 6,
+        "avgPickups": "1.00"
+      },
+      "solver_strong": {
+        "winRate": 100,
+        "failRate": 0,
+        "medianTurns": 7,
+        "avgPickups": "1.00"
+      }
+    }
+  },
+  "returnPointLeverage": {
+    "L01": [
+      {
+        "bucket": "Left (<240px)",
+        "shotCount": 110,
+        "repAngle": 111.5,
+        "repNextX": "228.7",
+        "nextTurnBestQ": "226.6",
+        "nextTurnRobustWidth": "46.4"
+      },
+      {
+        "bucket": "Center (240-480px)",
+        "shotCount": 125,
+        "repAngle": 114.5,
+        "repNextX": "319.2",
+        "nextTurnBestQ": "214.6",
+        "nextTurnRobustWidth": "46.4"
+      },
+      {
+        "bucket": "Right (>480px)",
+        "shotCount": 106,
+        "repAngle": 68.5,
+        "repNextX": "491.3",
+        "nextTurnBestQ": "236.4",
+        "nextTurnRobustWidth": "30.9"
+      }
+    ],
+    "L02": [
+      {
+        "bucket": "Left (<240px)",
+        "shotCount": 90,
+        "repAngle": 162.5,
+        "repNextX": "191.1",
+        "nextTurnBestQ": "181.8",
+        "nextTurnRobustWidth": "46.4"
+      },
+      {
+        "bucket": "Center (240-480px)",
+        "shotCount": 160,
+        "repAngle": 37,
+        "repNextX": "392.6",
+        "nextTurnBestQ": "275.7",
+        "nextTurnRobustWidth": "30.9"
+      },
+      {
+        "bucket": "Right (>480px)",
+        "shotCount": 91,
+        "repAngle": 172.5,
+        "repNextX": "615.9",
+        "nextTurnBestQ": "362.7",
+        "nextTurnRobustWidth": "15.5"
+      }
+    ],
+    "L03": [
+      {
+        "bucket": "Left (<240px)",
+        "shotCount": 98,
+        "repAngle": 24,
+        "repNextX": "237.6",
+        "nextTurnBestQ": "342.8",
+        "nextTurnRobustWidth": "46.4"
+      },
+      {
+        "bucket": "Center (240-480px)",
+        "shotCount": 138,
+        "repAngle": 25.5,
+        "repNextX": "303.3",
+        "nextTurnBestQ": "339.8",
+        "nextTurnRobustWidth": "61.8"
+      },
+      {
+        "bucket": "Right (>480px)",
+        "shotCount": 105,
+        "repAngle": 23.5,
+        "repNextX": "549.1",
+        "nextTurnBestQ": "198.8",
+        "nextTurnRobustWidth": "46.4"
+      }
+    ],
+    "L04": [
+      {
+        "bucket": "Left (<240px)",
+        "shotCount": 111,
+        "repAngle": 24.5,
+        "repNextX": "99.2",
+        "nextTurnBestQ": "172.2",
+        "nextTurnRobustWidth": "46.4"
+      },
+      {
+        "bucket": "Center (240-480px)",
+        "shotCount": 118,
+        "repAngle": 43,
+        "repNextX": "408.3",
+        "nextTurnBestQ": "370.8",
+        "nextTurnRobustWidth": "15.5"
+      },
+      {
+        "bucket": "Right (>480px)",
+        "shotCount": 112,
+        "repAngle": 33.5,
+        "repNextX": "561.7",
+        "nextTurnBestQ": "545.2",
+        "nextTurnRobustWidth": "30.9"
+      }
+    ],
+    "L05": [
+      {
+        "bucket": "Left (<240px)",
+        "shotCount": 95,
+        "repAngle": 149.5,
+        "repNextX": "219.2",
+        "nextTurnBestQ": "163.2",
+        "nextTurnRobustWidth": "30.9"
+      },
+      {
+        "bucket": "Center (240-480px)",
+        "shotCount": 153,
+        "repAngle": 164.5,
+        "repNextX": "329.1",
+        "nextTurnBestQ": "167.2",
+        "nextTurnRobustWidth": "77.3"
+      },
+      {
+        "bucket": "Right (>480px)",
+        "shotCount": 93,
+        "repAngle": 9,
+        "repNextX": "528.5",
+        "nextTurnBestQ": "141.2",
+        "nextTurnRobustWidth": "46.4"
+      }
+    ]
+  },
+  "pickupLeverage": {
+    "L01": {
+      "seekingWinRate": 100,
+      "seekingMedianTurns": 4,
+      "avoidingWinRate": 100,
+      "avoidingMedianTurns": 4,
+      "winRateDelta": 0
+    },
+    "L02": {
+      "seekingWinRate": 100,
+      "seekingMedianTurns": 4,
+      "avoidingWinRate": 100,
+      "avoidingMedianTurns": 4,
+      "winRateDelta": 0
+    },
+    "L03": {
+      "seekingWinRate": 100,
+      "seekingMedianTurns": 6,
+      "avoidingWinRate": 100,
+      "avoidingMedianTurns": 6,
+      "winRateDelta": 0
+    },
+    "L04": {
+      "seekingWinRate": 100,
+      "seekingMedianTurns": 6,
+      "avoidingWinRate": 100,
+      "avoidingMedianTurns": 5,
+      "winRateDelta": 0
+    },
+    "L05": {
+      "seekingWinRate": 100,
+      "seekingMedianTurns": 7,
+      "avoidingWinRate": 100,
+      "avoidingMedianTurns": 7,
+      "winRateDelta": 0
+    }
+  },
+  "needleInventory": {
+    "L01": {
+      "verticalCorridor": [
+        {
+          "angle": 88,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 88.5,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 89,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 89.5,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 90,
+          "damage": 37,
+          "destroyed": 5,
+          "duration": "5.13"
+        },
+        {
+          "angle": 90.5,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 91,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 91.5,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        },
+        {
+          "angle": 92,
+          "damage": 18,
+          "destroyed": 2,
+          "duration": "4.13"
+        }
+      ],
+      "allNeedles": [
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 8.5,
+          "endAngle": 8.5,
+          "widthDeg": 0.5,
+          "maxQuality": 283.8
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 9.5,
+          "endAngle": 9.5,
+          "widthDeg": 0.5,
+          "maxQuality": 266
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 12.5,
+          "endAngle": 12.5,
+          "widthDeg": 0.5,
+          "maxQuality": 283
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 17,
+          "endAngle": 17,
+          "widthDeg": 0.5,
+          "maxQuality": 297
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 18.5,
+          "endAngle": 18.5,
+          "widthDeg": 0.5,
+          "maxQuality": 266
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 21,
+          "endAngle": 21,
+          "widthDeg": 0.5,
+          "maxQuality": 293
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 33,
+          "endAngle": 33,
+          "widthDeg": 0.5,
+          "maxQuality": 261
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 34,
+          "endAngle": 34,
+          "widthDeg": 0.5,
+          "maxQuality": 432
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 35,
+          "endAngle": 35,
+          "widthDeg": 0.5,
+          "maxQuality": 339
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 54.5,
+          "endAngle": 54.5,
+          "widthDeg": 0.5,
+          "maxQuality": 262
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 72.5,
+          "endAngle": 72.5,
+          "widthDeg": 0.5,
+          "maxQuality": 390
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 78.5,
+          "endAngle": 78.5,
+          "widthDeg": 0.5,
+          "maxQuality": 413
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 95.5,
+          "endAngle": 95.5,
+          "widthDeg": 0.5,
+          "maxQuality": 377
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 101.5,
+          "endAngle": 101.5,
+          "widthDeg": 0.5,
+          "maxQuality": 396
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 107.5,
+          "endAngle": 107.5,
+          "widthDeg": 0.5,
+          "maxQuality": 320
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 118.5,
+          "endAngle": 118.5,
+          "widthDeg": 0.5,
+          "maxQuality": 306
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 123.5,
+          "endAngle": 123.5,
+          "widthDeg": 0.5,
+          "maxQuality": 275
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 127.5,
+          "endAngle": 127.5,
+          "widthDeg": 0.5,
+          "maxQuality": 265
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 143.5,
+          "endAngle": 143.5,
+          "widthDeg": 0.5,
+          "maxQuality": 357
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 146,
+          "endAngle": 146,
+          "widthDeg": 0.5,
+          "maxQuality": 365
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 152,
+          "endAngle": 152,
+          "widthDeg": 0.5,
+          "maxQuality": 277
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 157.5,
+          "endAngle": 157.5,
+          "widthDeg": 0.5,
+          "maxQuality": 265
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 159,
+          "endAngle": 159,
+          "widthDeg": 0.5,
+          "maxQuality": 262
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 166.5,
+          "endAngle": 166.5,
+          "widthDeg": 0.5,
+          "maxQuality": 442
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 167.5,
+          "endAngle": 167.5,
+          "widthDeg": 0.5,
+          "maxQuality": 261
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 170.5,
+          "endAngle": 170.5,
+          "widthDeg": 0.5,
+          "maxQuality": 263
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 171.5,
+          "endAngle": 171.5,
+          "widthDeg": 0.5,
+          "maxQuality": 264.8
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 173,
+          "endAngle": 173,
+          "widthDeg": 0.5,
+          "maxQuality": 267
+        }
+      ]
+    },
+    "L02": {
+      "verticalCorridor": [
+        {
+          "angle": 88,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 88.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 89,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 89.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 90,
+          "damage": 62,
+          "destroyed": 5,
+          "duration": "4.65"
+        },
+        {
+          "angle": 90.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 91,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 91.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 92,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.05"
+        }
+      ],
+      "allNeedles": [
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 6.5,
+          "endAngle": 6.5,
+          "widthDeg": 0.5,
+          "maxQuality": 259.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 7.5,
+          "endAngle": 7.5,
+          "widthDeg": 0.5,
+          "maxQuality": 299.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 8.5,
+          "endAngle": 8.5,
+          "widthDeg": 0.5,
+          "maxQuality": 244.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 12,
+          "endAngle": 12,
+          "widthDeg": 0.5,
+          "maxQuality": 267.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 16.5,
+          "endAngle": 16.5,
+          "widthDeg": 0.5,
+          "maxQuality": 261.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 17.5,
+          "endAngle": 17.5,
+          "widthDeg": 0.5,
+          "maxQuality": 264.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 27,
+          "endAngle": 27,
+          "widthDeg": 0.5,
+          "maxQuality": 216.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 55,
+          "endAngle": 55,
+          "widthDeg": 0.5,
+          "maxQuality": 215.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 74.5,
+          "endAngle": 74.5,
+          "widthDeg": 0.5,
+          "maxQuality": 206.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 153,
+          "endAngle": 153,
+          "widthDeg": 0.5,
+          "maxQuality": 231.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 166,
+          "endAngle": 166,
+          "widthDeg": 0.5,
+          "maxQuality": 202.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 167,
+          "endAngle": 167,
+          "widthDeg": 0.5,
+          "maxQuality": 222.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 168,
+          "endAngle": 168,
+          "widthDeg": 0.5,
+          "maxQuality": 299.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 171.5,
+          "endAngle": 171.5,
+          "widthDeg": 0.5,
+          "maxQuality": 275.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 172.5,
+          "endAngle": 172.5,
+          "widthDeg": 0.5,
+          "maxQuality": 285.5
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 173.5,
+          "endAngle": 173.5,
+          "widthDeg": 0.5,
+          "maxQuality": 260.6
+        }
+      ]
+    },
+    "L03": {
+      "verticalCorridor": [
+        {
+          "angle": 88,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 88.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 89,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 89.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 90,
+          "damage": 46,
+          "destroyed": 5,
+          "duration": "5.13"
+        },
+        {
+          "angle": 90.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 91,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 91.5,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        },
+        {
+          "angle": 92,
+          "damage": 18,
+          "destroyed": 1,
+          "duration": "4.08"
+        }
+      ],
+      "allNeedles": [
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 5.5,
+          "endAngle": 5.5,
+          "widthDeg": 0.5,
+          "maxQuality": 234.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 10,
+          "endAngle": 10,
+          "widthDeg": 0.5,
+          "maxQuality": 276.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 12,
+          "endAngle": 12,
+          "widthDeg": 0.5,
+          "maxQuality": 263.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 13,
+          "endAngle": 13,
+          "widthDeg": 0.5,
+          "maxQuality": 368.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 15.5,
+          "endAngle": 15.5,
+          "widthDeg": 0.5,
+          "maxQuality": 320.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 21.5,
+          "endAngle": 21.5,
+          "widthDeg": 0.5,
+          "maxQuality": 252.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 25.5,
+          "endAngle": 25.5,
+          "widthDeg": 0.5,
+          "maxQuality": 371.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 27,
+          "endAngle": 27,
+          "widthDeg": 0.5,
+          "maxQuality": 236.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 42,
+          "endAngle": 42,
+          "widthDeg": 0.5,
+          "maxQuality": 243.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 43,
+          "endAngle": 43,
+          "widthDeg": 0.5,
+          "maxQuality": 280.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 83.5,
+          "endAngle": 83.5,
+          "widthDeg": 0.5,
+          "maxQuality": 224.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 99,
+          "endAngle": 99,
+          "widthDeg": 0.5,
+          "maxQuality": 225.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 103.5,
+          "endAngle": 103.5,
+          "widthDeg": 0.5,
+          "maxQuality": 274.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 110.5,
+          "endAngle": 110.5,
+          "widthDeg": 0.5,
+          "maxQuality": 222.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 139.5,
+          "endAngle": 139.5,
+          "widthDeg": 0.5,
+          "maxQuality": 407.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 144,
+          "endAngle": 144,
+          "widthDeg": 0.5,
+          "maxQuality": 245.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 158.5,
+          "endAngle": 158.5,
+          "widthDeg": 0.5,
+          "maxQuality": 272.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 164.5,
+          "endAngle": 164.5,
+          "widthDeg": 0.5,
+          "maxQuality": 264.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 168,
+          "endAngle": 168,
+          "widthDeg": 0.5,
+          "maxQuality": 299.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 169,
+          "endAngle": 169,
+          "widthDeg": 0.5,
+          "maxQuality": 221.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 171.5,
+          "endAngle": 171.5,
+          "widthDeg": 0.5,
+          "maxQuality": 256.6
+        }
+      ]
+    },
+    "L04": {
+      "verticalCorridor": [
+        {
+          "angle": 88,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 88.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 89,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 89.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 90,
+          "damage": 56,
+          "destroyed": 5,
+          "duration": "5.25"
+        },
+        {
+          "angle": 90.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 91,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 91.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        },
+        {
+          "angle": 92,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.15"
+        }
+      ],
+      "allNeedles": [
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 9.5,
+          "endAngle": 9.5,
+          "widthDeg": 0.5,
+          "maxQuality": 220
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 10.5,
+          "endAngle": 10.5,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 11.5,
+          "endAngle": 11.5,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 13,
+          "endAngle": 13,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 14,
+          "endAngle": 14,
+          "widthDeg": 0.5,
+          "maxQuality": 191
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 16.5,
+          "endAngle": 16.5,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 19,
+          "endAngle": 19,
+          "widthDeg": 0.5,
+          "maxQuality": 233
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 26,
+          "endAngle": 26,
+          "widthDeg": 0.5,
+          "maxQuality": 212.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 30,
+          "endAngle": 30,
+          "widthDeg": 0.5,
+          "maxQuality": 190.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 31,
+          "endAngle": 31,
+          "widthDeg": 0.5,
+          "maxQuality": 183
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 59.5,
+          "endAngle": 59.5,
+          "widthDeg": 0.5,
+          "maxQuality": 222.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 83,
+          "endAngle": 83,
+          "widthDeg": 0.5,
+          "maxQuality": 203.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 90,
+          "endAngle": 90,
+          "widthDeg": 0.5,
+          "maxQuality": 177.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 97,
+          "endAngle": 97,
+          "widthDeg": 0.5,
+          "maxQuality": 229.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 114,
+          "endAngle": 114,
+          "widthDeg": 0.5,
+          "maxQuality": 214.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 124.5,
+          "endAngle": 124.5,
+          "widthDeg": 0.5,
+          "maxQuality": 199.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 137,
+          "endAngle": 137,
+          "widthDeg": 0.5,
+          "maxQuality": 214.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 148.5,
+          "endAngle": 148.5,
+          "widthDeg": 0.5,
+          "maxQuality": 180.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 150,
+          "endAngle": 150,
+          "widthDeg": 0.5,
+          "maxQuality": 209.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 159.5,
+          "endAngle": 159.5,
+          "widthDeg": 0.5,
+          "maxQuality": 196.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 161,
+          "endAngle": 161,
+          "widthDeg": 0.5,
+          "maxQuality": 208.6
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 165,
+          "endAngle": 165,
+          "widthDeg": 0.5,
+          "maxQuality": 200
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 167,
+          "endAngle": 167,
+          "widthDeg": 0.5,
+          "maxQuality": 191
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 168.5,
+          "endAngle": 168.5,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 170.5,
+          "endAngle": 170.5,
+          "widthDeg": 0.5,
+          "maxQuality": 222
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 172,
+          "endAngle": 172,
+          "widthDeg": 0.5,
+          "maxQuality": 176
+        }
+      ]
+    },
+    "L05": {
+      "verticalCorridor": [
+        {
+          "angle": 88,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 88.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 89,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 89.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 90,
+          "damage": 37,
+          "destroyed": 2,
+          "duration": "4.15"
+        },
+        {
+          "angle": 90.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 91,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 91.5,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        },
+        {
+          "angle": 92,
+          "damage": 20,
+          "destroyed": 1,
+          "duration": "4.05"
+        }
+      ],
+      "allNeedles": [
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 6,
+          "endAngle": 6,
+          "widthDeg": 0.5,
+          "maxQuality": 183
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 7.5,
+          "endAngle": 7.5,
+          "widthDeg": 0.5,
+          "maxQuality": 255
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 9,
+          "endAngle": 9,
+          "widthDeg": 0.5,
+          "maxQuality": 268.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 10.5,
+          "endAngle": 10.5,
+          "widthDeg": 0.5,
+          "maxQuality": 280.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 11.5,
+          "endAngle": 11.5,
+          "widthDeg": 0.5,
+          "maxQuality": 183
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 19,
+          "endAngle": 19,
+          "widthDeg": 0.5,
+          "maxQuality": 207
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 36,
+          "endAngle": 36,
+          "widthDeg": 0.5,
+          "maxQuality": 223.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 48.5,
+          "endAngle": 48.5,
+          "widthDeg": 0.5,
+          "maxQuality": 191
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 49.5,
+          "endAngle": 49.5,
+          "widthDeg": 0.5,
+          "maxQuality": 191.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 57.5,
+          "endAngle": 57.5,
+          "widthDeg": 0.5,
+          "maxQuality": 188.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 105,
+          "endAngle": 105,
+          "widthDeg": 0.5,
+          "maxQuality": 193.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 122.5,
+          "endAngle": 122.5,
+          "widthDeg": 0.5,
+          "maxQuality": 204.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 128.5,
+          "endAngle": 128.5,
+          "widthDeg": 0.5,
+          "maxQuality": 210.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 148,
+          "endAngle": 148,
+          "widthDeg": 0.5,
+          "maxQuality": 182.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 149.5,
+          "endAngle": 149.5,
+          "widthDeg": 0.5,
+          "maxQuality": 280
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 152,
+          "endAngle": 152,
+          "widthDeg": 0.5,
+          "maxQuality": 190
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 155,
+          "endAngle": 155,
+          "widthDeg": 0.5,
+          "maxQuality": 215.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 156.5,
+          "endAngle": 156.5,
+          "widthDeg": 0.5,
+          "maxQuality": 210.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 158,
+          "endAngle": 158,
+          "widthDeg": 0.5,
+          "maxQuality": 181.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 159,
+          "endAngle": 159,
+          "widthDeg": 0.5,
+          "maxQuality": 191.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 160,
+          "endAngle": 160,
+          "widthDeg": 0.5,
+          "maxQuality": 212
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 161,
+          "endAngle": 161,
+          "widthDeg": 0.5,
+          "maxQuality": 205
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 164.5,
+          "endAngle": 164.5,
+          "widthDeg": 0.5,
+          "maxQuality": 312
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 167,
+          "endAngle": 167,
+          "widthDeg": 0.5,
+          "maxQuality": 192.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 169.5,
+          "endAngle": 169.5,
+          "widthDeg": 0.5,
+          "maxQuality": 248.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 171,
+          "endAngle": 171,
+          "widthDeg": 0.5,
+          "maxQuality": 259.2
+        },
+        {
+          "state": "Initial (Turn 0)",
+          "startAngle": 172.5,
+          "endAngle": 172.5,
+          "widthDeg": 0.5,
+          "maxQuality": 242
+        }
+      ]
+    }
+  },
+  "landscapeOverview": {
+    "L01": [
+      {
+        "label": "Initial (Turn 0)",
+        "sampleCount": 341,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 92.37536656891496,
+          "pctChanged100": 94.72140762463343,
+          "needleBands": [
+            {
+              "startAngle": 8.5,
+              "endAngle": 8.5,
+              "width": 0.5,
+              "maxQuality": 283.8,
+              "angles": [
+                8.5
+              ]
+            },
+            {
+              "startAngle": 9.5,
+              "endAngle": 9.5,
+              "width": 0.5,
+              "maxQuality": 266,
+              "angles": [
+                9.5
+              ]
+            },
+            {
+              "startAngle": 12.5,
+              "endAngle": 12.5,
+              "width": 0.5,
+              "maxQuality": 283,
+              "angles": [
+                12.5
+              ]
+            },
+            {
+              "startAngle": 17,
+              "endAngle": 17,
+              "width": 0.5,
+              "maxQuality": 297,
+              "angles": [
+                17
+              ]
+            },
+            {
+              "startAngle": 18.5,
+              "endAngle": 18.5,
+              "width": 0.5,
+              "maxQuality": 266,
+              "angles": [
+                18.5
+              ]
+            },
+            {
+              "startAngle": 21,
+              "endAngle": 21,
+              "width": 0.5,
+              "maxQuality": 293,
+              "angles": [
+                21
+              ]
+            },
+            {
+              "startAngle": 33,
+              "endAngle": 33,
+              "width": 0.5,
+              "maxQuality": 261,
+              "angles": [
+                33
+              ]
+            },
+            {
+              "startAngle": 34,
+              "endAngle": 34,
+              "width": 0.5,
+              "maxQuality": 432,
+              "angles": [
+                34
+              ]
+            },
+            {
+              "startAngle": 35,
+              "endAngle": 35,
+              "width": 0.5,
+              "maxQuality": 339,
+              "angles": [
+                35
+              ]
+            },
+            {
+              "startAngle": 54.5,
+              "endAngle": 54.5,
+              "width": 0.5,
+              "maxQuality": 262,
+              "angles": [
+                54.5
+              ]
+            },
+            {
+              "startAngle": 72.5,
+              "endAngle": 72.5,
+              "width": 0.5,
+              "maxQuality": 390,
+              "angles": [
+                72.5
+              ]
+            },
+            {
+              "startAngle": 78.5,
+              "endAngle": 78.5,
+              "width": 0.5,
+              "maxQuality": 413,
+              "angles": [
+                78.5
+              ]
+            },
+            {
+              "startAngle": 95.5,
+              "endAngle": 95.5,
+              "width": 0.5,
+              "maxQuality": 377,
+              "angles": [
+                95.5
+              ]
+            },
+            {
+              "startAngle": 101.5,
+              "endAngle": 101.5,
+              "width": 0.5,
+              "maxQuality": 396,
+              "angles": [
+                101.5
+              ]
+            },
+            {
+              "startAngle": 107.5,
+              "endAngle": 107.5,
+              "width": 0.5,
+              "maxQuality": 320,
+              "angles": [
+                107.5
+              ]
+            },
+            {
+              "startAngle": 118.5,
+              "endAngle": 118.5,
+              "width": 0.5,
+              "maxQuality": 306,
+              "angles": [
+                118.5
+              ]
+            },
+            {
+              "startAngle": 123.5,
+              "endAngle": 123.5,
+              "width": 0.5,
+              "maxQuality": 275,
+              "angles": [
+                123.5
+              ]
+            },
+            {
+              "startAngle": 127.5,
+              "endAngle": 127.5,
+              "width": 0.5,
+              "maxQuality": 265,
+              "angles": [
+                127.5
+              ]
+            },
+            {
+              "startAngle": 143.5,
+              "endAngle": 143.5,
+              "width": 0.5,
+              "maxQuality": 357,
+              "angles": [
+                143.5
+              ]
+            },
+            {
+              "startAngle": 146,
+              "endAngle": 146,
+              "width": 0.5,
+              "maxQuality": 365,
+              "angles": [
+                146
+              ]
+            },
+            {
+              "startAngle": 152,
+              "endAngle": 152,
+              "width": 0.5,
+              "maxQuality": 277,
+              "angles": [
+                152
+              ]
+            },
+            {
+              "startAngle": 157.5,
+              "endAngle": 157.5,
+              "width": 0.5,
+              "maxQuality": 265,
+              "angles": [
+                157.5
+              ]
+            },
+            {
+              "startAngle": 159,
+              "endAngle": 159,
+              "width": 0.5,
+              "maxQuality": 262,
+              "angles": [
+                159
+              ]
+            },
+            {
+              "startAngle": 166.5,
+              "endAngle": 166.5,
+              "width": 0.5,
+              "maxQuality": 442,
+              "angles": [
+                166.5
+              ]
+            },
+            {
+              "startAngle": 167.5,
+              "endAngle": 167.5,
+              "width": 0.5,
+              "maxQuality": 261,
+              "angles": [
+                167.5
+              ]
+            },
+            {
+              "startAngle": 170.5,
+              "endAngle": 170.5,
+              "width": 0.5,
+              "maxQuality": 263,
+              "angles": [
+                170.5
+              ]
+            },
+            {
+              "startAngle": 171.5,
+              "endAngle": 171.5,
+              "width": 0.5,
+              "maxQuality": 264.8,
+              "angles": [
+                171.5
+              ]
+            },
+            {
+              "startAngle": 173,
+              "endAngle": 173,
+              "width": 0.5,
+              "maxQuality": 267,
+              "angles": [
+                173
+              ]
+            }
+          ]
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18.5,
+          "top20QWidthDeg": 34.5,
+          "maxRobustContiguousWidthDeg": 0.5,
+          "isolatedSpikesCount": 32
+        },
+        "paretoFrontierCount": 86,
+        "paretoFrontierAngles": [
+          8.5,
+          12.5,
+          17,
+          18.5,
+          21,
+          21.5,
+          22.5,
+          27.5,
+          28,
+          29.5,
+          31,
+          31.5,
+          32,
+          32.5,
+          34,
+          34.5,
+          35,
+          37.5,
+          38.5,
+          41,
+          41.5,
+          42,
+          44,
+          44.5,
+          45,
+          45.5,
+          47,
+          47.5,
+          49,
+          56.5,
+          62.5,
+          63,
+          64,
+          64.5,
+          65,
+          65.5,
+          66,
+          67,
+          68.5,
+          70,
+          72.5,
+          74.5,
+          76,
+          78.5,
+          79,
+          84,
+          84.5,
+          89.5,
+          90,
+          90.5,
+          95.5,
+          96,
+          96.5,
+          101.5,
+          103.5,
+          111.5,
+          112,
+          112.5,
+          113,
+          113.5,
+          114.5,
+          115,
+          115.5,
+          116,
+          120,
+          121,
+          122,
+          129,
+          129.5,
+          131.5,
+          133.5,
+          135,
+          139,
+          141.5,
+          142,
+          143.5,
+          149,
+          149.5,
+          150.5,
+          152,
+          152.5,
+          153.5,
+          157,
+          157.5,
+          158.5,
+          171.5
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7992006693026751,
+          "rDestroyedDuration": 0.7916761155509752,
+          "rQualityDuration": 0.8309299320213626
+        },
+        "durations": {
+          "median": 7.616666666666645,
+          "top10Avg": 19.175000000000114,
+          "bestShot": 50.08333333333177
+        },
+        "bestAngle": 68.5,
+        "bestQuality": 492,
+        "bestDamage": 137,
+        "bestDestroyed": 20
+      },
+      {
+        "label": "Mid-Game Strong (Turn 1, prior 68.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 93.56725146198829,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 27,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 11,
+          "isolatedSpikesCount": 4
+        },
+        "paretoFrontierCount": 29,
+        "paretoFrontierAngles": [
+          46,
+          47,
+          49,
+          51,
+          56,
+          58,
+          60,
+          68,
+          73,
+          74,
+          75,
+          76,
+          92,
+          93,
+          98,
+          102,
+          105,
+          106,
+          107,
+          108,
+          110,
+          114,
+          126,
+          130,
+          136,
+          138,
+          139,
+          156,
+          172
+        ],
+        "correlations": {
+          "rDamageDuration": 0.778562500867482,
+          "rDestroyedDuration": 0.769417606607392,
+          "rQualityDuration": 0.7641760269568745
+        },
+        "durations": {
+          "median": 7.9333333333333105,
+          "top10Avg": 22.509803921568405,
+          "bestShot": 52.31666666666498
+        },
+        "bestAngle": 5,
+        "bestQuality": 236.4,
+        "bestDamage": 26,
+        "bestDestroyed": 7
+      },
+      {
+        "label": "Mid-Game Competent (Turn 1, prior 6°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 98.83040935672514,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 19,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 3,
+          "isolatedSpikesCount": 16
+        },
+        "paretoFrontierCount": 63,
+        "paretoFrontierAngles": [
+          12,
+          13,
+          23,
+          25,
+          26,
+          27,
+          33,
+          38,
+          43,
+          44,
+          47,
+          50,
+          52,
+          54,
+          56,
+          57,
+          58,
+          63,
+          66,
+          68,
+          71,
+          72,
+          77,
+          78,
+          82,
+          84,
+          85,
+          86,
+          87,
+          91,
+          95,
+          101,
+          102,
+          103,
+          105,
+          106,
+          108,
+          110,
+          111,
+          112,
+          113,
+          118,
+          120,
+          128,
+          129,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          140,
+          141,
+          142,
+          144,
+          145,
+          149,
+          150,
+          151,
+          162,
+          166,
+          169
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7199674660401026,
+          "rDestroyedDuration": 0.7257926682997,
+          "rQualityDuration": 0.7479950128432327
+        },
+        "durations": {
+          "median": 9.916666666666739,
+          "top10Avg": 22.667647058823523,
+          "bestShot": 23.866666666666593
+        },
+        "bestAngle": 102,
+        "bestQuality": 478,
+        "bestDamage": 123,
+        "bestDestroyed": 20
+      },
+      {
+        "label": "Mid-Game Weak-Reasonable (Turn 1, prior 47°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 98.83040935672514,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 2,
+          "isolatedSpikesCount": 9
+        },
+        "paretoFrontierCount": 57,
+        "paretoFrontierAngles": [
+          14,
+          18,
+          19,
+          25,
+          28,
+          31,
+          32,
+          38,
+          39,
+          40,
+          41,
+          42,
+          44,
+          45,
+          60,
+          61,
+          69,
+          70,
+          71,
+          72,
+          73,
+          75,
+          76,
+          77,
+          81,
+          87,
+          88,
+          94,
+          95,
+          96,
+          97,
+          98,
+          99,
+          103,
+          108,
+          111,
+          115,
+          116,
+          117,
+          118,
+          119,
+          121,
+          122,
+          123,
+          131,
+          132,
+          133,
+          135,
+          136,
+          137,
+          138,
+          140,
+          154,
+          155,
+          163,
+          171,
+          173
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7795415979254351,
+          "rDestroyedDuration": 0.7730347647112706,
+          "rQualityDuration": 0.8006698782156955
+        },
+        "durations": {
+          "median": 9.1166666666667,
+          "top10Avg": 21.70588235294117,
+          "bestShot": 56.649999999998066
+        },
+        "bestAngle": 81,
+        "bestQuality": 520,
+        "bestDamage": 120,
+        "bestDestroyed": 21
+      }
+    ],
+    "L02": [
+      {
+        "label": "Initial (Turn 0)",
+        "sampleCount": 341,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 80.64516129032258,
+          "pctChanged100": 88.85630498533725,
+          "needleBands": [
+            {
+              "startAngle": 6.5,
+              "endAngle": 6.5,
+              "width": 0.5,
+              "maxQuality": 259.6,
+              "angles": [
+                6.5
+              ]
+            },
+            {
+              "startAngle": 7.5,
+              "endAngle": 7.5,
+              "width": 0.5,
+              "maxQuality": 299.5,
+              "angles": [
+                7.5
+              ]
+            },
+            {
+              "startAngle": 8.5,
+              "endAngle": 8.5,
+              "width": 0.5,
+              "maxQuality": 244.5,
+              "angles": [
+                8.5
+              ]
+            },
+            {
+              "startAngle": 12,
+              "endAngle": 12,
+              "width": 0.5,
+              "maxQuality": 267.5,
+              "angles": [
+                12
+              ]
+            },
+            {
+              "startAngle": 16.5,
+              "endAngle": 16.5,
+              "width": 0.5,
+              "maxQuality": 261.6,
+              "angles": [
+                16.5
+              ]
+            },
+            {
+              "startAngle": 17.5,
+              "endAngle": 17.5,
+              "width": 0.5,
+              "maxQuality": 264.6,
+              "angles": [
+                17.5
+              ]
+            },
+            {
+              "startAngle": 27,
+              "endAngle": 27,
+              "width": 0.5,
+              "maxQuality": 216.6,
+              "angles": [
+                27
+              ]
+            },
+            {
+              "startAngle": 55,
+              "endAngle": 55,
+              "width": 0.5,
+              "maxQuality": 215.6,
+              "angles": [
+                55
+              ]
+            },
+            {
+              "startAngle": 74.5,
+              "endAngle": 74.5,
+              "width": 0.5,
+              "maxQuality": 206.6,
+              "angles": [
+                74.5
+              ]
+            },
+            {
+              "startAngle": 153,
+              "endAngle": 153,
+              "width": 0.5,
+              "maxQuality": 231.6,
+              "angles": [
+                153
+              ]
+            },
+            {
+              "startAngle": 166,
+              "endAngle": 166,
+              "width": 0.5,
+              "maxQuality": 202.6,
+              "angles": [
+                166
+              ]
+            },
+            {
+              "startAngle": 167,
+              "endAngle": 167,
+              "width": 0.5,
+              "maxQuality": 222.6,
+              "angles": [
+                167
+              ]
+            },
+            {
+              "startAngle": 168,
+              "endAngle": 168,
+              "width": 0.5,
+              "maxQuality": 299.5,
+              "angles": [
+                168
+              ]
+            },
+            {
+              "startAngle": 171.5,
+              "endAngle": 171.5,
+              "width": 0.5,
+              "maxQuality": 275.5,
+              "angles": [
+                171.5
+              ]
+            },
+            {
+              "startAngle": 172.5,
+              "endAngle": 172.5,
+              "width": 0.5,
+              "maxQuality": 285.5,
+              "angles": [
+                172.5
+              ]
+            },
+            {
+              "startAngle": 173.5,
+              "endAngle": 173.5,
+              "width": 0.5,
+              "maxQuality": 260.6,
+              "angles": [
+                173.5
+              ]
+            }
+          ]
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 18
+        },
+        "paretoFrontierCount": 55,
+        "paretoFrontierAngles": [
+          5,
+          7.5,
+          10,
+          15.5,
+          17.5,
+          21,
+          23,
+          24,
+          24.5,
+          25,
+          36.5,
+          37,
+          55,
+          55.5,
+          60.5,
+          62,
+          67.5,
+          68.5,
+          69,
+          69.5,
+          70,
+          70.5,
+          71,
+          71.5,
+          73.5,
+          74.5,
+          75,
+          83.5,
+          89.5,
+          90,
+          90.5,
+          96.5,
+          105,
+          110,
+          124.5,
+          137.5,
+          140.5,
+          141,
+          141.5,
+          142,
+          143,
+          143.5,
+          144,
+          153,
+          155,
+          155.5,
+          159,
+          162.5,
+          164,
+          164.5,
+          168,
+          169,
+          171.5,
+          172.5,
+          175
+        ],
+        "correlations": {
+          "rDamageDuration": 0.6691809962057285,
+          "rDestroyedDuration": 0.5318193488218125,
+          "rQualityDuration": 0.5992461095849493
+        },
+        "durations": {
+          "median": 5.316666666666653,
+          "top10Avg": 14.57598039215703,
+          "bestShot": 16.850000000000325
+        },
+        "bestAngle": 162.5,
+        "bestQuality": 339.6,
+        "bestDamage": 114,
+        "bestDestroyed": 10
+      },
+      {
+        "label": "Mid-Game Strong (Turn 1, prior 162.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 89.47368421052632,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 14
+        },
+        "paretoFrontierCount": 47,
+        "paretoFrontierAngles": [
+          7,
+          9,
+          14,
+          15,
+          20,
+          21,
+          23,
+          29,
+          31,
+          33,
+          34,
+          41,
+          43,
+          44,
+          45,
+          60,
+          63,
+          64,
+          80,
+          82,
+          84,
+          85,
+          97,
+          98,
+          99,
+          109,
+          110,
+          111,
+          112,
+          114,
+          116,
+          117,
+          118,
+          134,
+          136,
+          137,
+          141,
+          145,
+          151,
+          153,
+          155,
+          156,
+          166,
+          169,
+          172,
+          173,
+          174
+        ],
+        "correlations": {
+          "rDamageDuration": 0.8452284179945047,
+          "rDestroyedDuration": 0.7908161352771425,
+          "rQualityDuration": 0.8372447397795311
+        },
+        "durations": {
+          "median": 6.983333333333314,
+          "top10Avg": 23.64215686274498,
+          "bestShot": 43.66666666666547
+        },
+        "bestAngle": 173,
+        "bestQuality": 471.7,
+        "bestDamage": 167,
+        "bestDestroyed": 17
+      },
+      {
+        "label": "Mid-Game Competent (Turn 1, prior 107.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 93.56725146198829,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 7
+        },
+        "paretoFrontierCount": 61,
+        "paretoFrontierAngles": [
+          8,
+          10,
+          12,
+          14,
+          17,
+          20,
+          21,
+          29,
+          30,
+          32,
+          36,
+          39,
+          45,
+          48,
+          49,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          71,
+          78,
+          80,
+          82,
+          83,
+          85,
+          86,
+          87,
+          102,
+          103,
+          104,
+          106,
+          111,
+          113,
+          131,
+          132,
+          134,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          154,
+          155,
+          157,
+          158,
+          160,
+          162,
+          164,
+          165,
+          166,
+          167
+        ],
+        "correlations": {
+          "rDamageDuration": 0.791418019431523,
+          "rDestroyedDuration": 0.8141626267308485,
+          "rQualityDuration": 0.8035186769553474
+        },
+        "durations": {
+          "median": 5.933333333333318,
+          "top10Avg": 23.341176470588124,
+          "bestShot": 38.96666666666574
+        },
+        "bestAngle": 30,
+        "bestQuality": 530.8,
+        "bestDamage": 207,
+        "bestDestroyed": 19
+      },
+      {
+        "label": "Mid-Game Weak-Reasonable (Turn 1, prior 126.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 92.98245614035088,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 2,
+          "isolatedSpikesCount": 11
+        },
+        "paretoFrontierCount": 56,
+        "paretoFrontierAngles": [
+          7,
+          11,
+          12,
+          13,
+          14,
+          16,
+          18,
+          20,
+          25,
+          27,
+          33,
+          34,
+          45,
+          50,
+          51,
+          52,
+          55,
+          58,
+          59,
+          74,
+          77,
+          78,
+          79,
+          80,
+          81,
+          83,
+          91,
+          93,
+          98,
+          99,
+          100,
+          101,
+          102,
+          103,
+          108,
+          116,
+          117,
+          118,
+          120,
+          121,
+          131,
+          132,
+          133,
+          134,
+          135,
+          143,
+          145,
+          149,
+          150,
+          152,
+          153,
+          166,
+          167,
+          171,
+          173,
+          175
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7783748704223021,
+          "rDestroyedDuration": 0.6802194234750558,
+          "rQualityDuration": 0.7220460364640303
+        },
+        "durations": {
+          "median": 5.616666666666652,
+          "top10Avg": 16.497058823529546,
+          "bestShot": 33.566666666666045
+        },
+        "bestAngle": 132,
+        "bestQuality": 424.8,
+        "bestDamage": 161,
+        "bestDestroyed": 15
+      }
+    ],
+    "L03": [
+      {
+        "label": "Initial (Turn 0)",
+        "sampleCount": 341,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 85.63049853372434,
+          "pctChanged100": 91.49560117302052,
+          "needleBands": [
+            {
+              "startAngle": 5.5,
+              "endAngle": 5.5,
+              "width": 0.5,
+              "maxQuality": 234.6,
+              "angles": [
+                5.5
+              ]
+            },
+            {
+              "startAngle": 10,
+              "endAngle": 10,
+              "width": 0.5,
+              "maxQuality": 276.6,
+              "angles": [
+                10
+              ]
+            },
+            {
+              "startAngle": 12,
+              "endAngle": 12,
+              "width": 0.5,
+              "maxQuality": 263.6,
+              "angles": [
+                12
+              ]
+            },
+            {
+              "startAngle": 13,
+              "endAngle": 13,
+              "width": 0.5,
+              "maxQuality": 368.6,
+              "angles": [
+                13
+              ]
+            },
+            {
+              "startAngle": 15.5,
+              "endAngle": 15.5,
+              "width": 0.5,
+              "maxQuality": 320.6,
+              "angles": [
+                15.5
+              ]
+            },
+            {
+              "startAngle": 21.5,
+              "endAngle": 21.5,
+              "width": 0.5,
+              "maxQuality": 252.6,
+              "angles": [
+                21.5
+              ]
+            },
+            {
+              "startAngle": 25.5,
+              "endAngle": 25.5,
+              "width": 0.5,
+              "maxQuality": 371.6,
+              "angles": [
+                25.5
+              ]
+            },
+            {
+              "startAngle": 27,
+              "endAngle": 27,
+              "width": 0.5,
+              "maxQuality": 236.6,
+              "angles": [
+                27
+              ]
+            },
+            {
+              "startAngle": 42,
+              "endAngle": 42,
+              "width": 0.5,
+              "maxQuality": 243.6,
+              "angles": [
+                42
+              ]
+            },
+            {
+              "startAngle": 43,
+              "endAngle": 43,
+              "width": 0.5,
+              "maxQuality": 280.6,
+              "angles": [
+                43
+              ]
+            },
+            {
+              "startAngle": 83.5,
+              "endAngle": 83.5,
+              "width": 0.5,
+              "maxQuality": 224.6,
+              "angles": [
+                83.5
+              ]
+            },
+            {
+              "startAngle": 99,
+              "endAngle": 99,
+              "width": 0.5,
+              "maxQuality": 225.6,
+              "angles": [
+                99
+              ]
+            },
+            {
+              "startAngle": 103.5,
+              "endAngle": 103.5,
+              "width": 0.5,
+              "maxQuality": 274.6,
+              "angles": [
+                103.5
+              ]
+            },
+            {
+              "startAngle": 110.5,
+              "endAngle": 110.5,
+              "width": 0.5,
+              "maxQuality": 222.6,
+              "angles": [
+                110.5
+              ]
+            },
+            {
+              "startAngle": 139.5,
+              "endAngle": 139.5,
+              "width": 0.5,
+              "maxQuality": 407.6,
+              "angles": [
+                139.5
+              ]
+            },
+            {
+              "startAngle": 144,
+              "endAngle": 144,
+              "width": 0.5,
+              "maxQuality": 245.6,
+              "angles": [
+                144
+              ]
+            },
+            {
+              "startAngle": 158.5,
+              "endAngle": 158.5,
+              "width": 0.5,
+              "maxQuality": 272.6,
+              "angles": [
+                158.5
+              ]
+            },
+            {
+              "startAngle": 164.5,
+              "endAngle": 164.5,
+              "width": 0.5,
+              "maxQuality": 264.6,
+              "angles": [
+                164.5
+              ]
+            },
+            {
+              "startAngle": 168,
+              "endAngle": 168,
+              "width": 0.5,
+              "maxQuality": 299.6,
+              "angles": [
+                168
+              ]
+            },
+            {
+              "startAngle": 169,
+              "endAngle": 169,
+              "width": 0.5,
+              "maxQuality": 221.6,
+              "angles": [
+                169
+              ]
+            },
+            {
+              "startAngle": 171.5,
+              "endAngle": 171.5,
+              "width": 0.5,
+              "maxQuality": 256.6,
+              "angles": [
+                171.5
+              ]
+            }
+          ]
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 17.5,
+          "top20QWidthDeg": 34.5,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 18
+        },
+        "paretoFrontierCount": 71,
+        "paretoFrontierAngles": [
+          5,
+          13,
+          15.5,
+          21.5,
+          23,
+          23.5,
+          24,
+          25.5,
+          28.5,
+          35.5,
+          38,
+          39,
+          40,
+          40.5,
+          42,
+          43,
+          55,
+          56,
+          56.5,
+          57,
+          60,
+          60.5,
+          61.5,
+          62,
+          62.5,
+          65,
+          65.5,
+          67,
+          69.5,
+          71,
+          71.5,
+          73.5,
+          75,
+          75.5,
+          77,
+          77.5,
+          83.5,
+          87,
+          89.5,
+          90,
+          90.5,
+          96.5,
+          101.5,
+          103,
+          103.5,
+          104,
+          105,
+          106.5,
+          108.5,
+          119.5,
+          120,
+          124,
+          125,
+          133,
+          133.5,
+          134,
+          137,
+          137.5,
+          138,
+          138.5,
+          141.5,
+          144.5,
+          152.5,
+          154,
+          154.5,
+          155,
+          156.5,
+          157,
+          162.5,
+          164.5,
+          175
+        ],
+        "correlations": {
+          "rDamageDuration": 0.6510673359480221,
+          "rDestroyedDuration": 0.5582805584457151,
+          "rQualityDuration": 0.6164683938219343
+        },
+        "durations": {
+          "median": 5.3833333333333195,
+          "top10Avg": 13.266666666666788,
+          "bestShot": 32.83333333333275
+        },
+        "bestAngle": 23.5,
+        "bestQuality": 438.6,
+        "bestDamage": 153,
+        "bestDestroyed": 14
+      },
+      {
+        "label": "Mid-Game Strong (Turn 1, prior 23.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 89.47368421052632,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 2,
+          "isolatedSpikesCount": 15
+        },
+        "paretoFrontierCount": 55,
+        "paretoFrontierAngles": [
+          12,
+          23,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          45,
+          48,
+          49,
+          50,
+          53,
+          59,
+          63,
+          64,
+          69,
+          70,
+          71,
+          72,
+          95,
+          97,
+          98,
+          99,
+          108,
+          109,
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          136,
+          139,
+          147,
+          148,
+          156,
+          159,
+          161,
+          170,
+          171
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7810153410264385,
+          "rDestroyedDuration": 0.7708512084357851,
+          "rQualityDuration": 0.7809470959487851
+        },
+        "durations": {
+          "median": 9.350000000000044,
+          "top10Avg": 27.898039215685916,
+          "bestShot": 44.51666666666542
+        },
+        "bestAngle": 170,
+        "bestQuality": 419.6,
+        "bestDamage": 123,
+        "bestDestroyed": 15
+      },
+      {
+        "label": "Mid-Game Competent (Turn 1, prior 110°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 90.05847953216374,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 14
+        },
+        "paretoFrontierCount": 55,
+        "paretoFrontierAngles": [
+          9,
+          10,
+          19,
+          22,
+          27,
+          28,
+          29,
+          30,
+          31,
+          40,
+          41,
+          46,
+          47,
+          48,
+          49,
+          50,
+          53,
+          55,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          67,
+          68,
+          72,
+          78,
+          79,
+          80,
+          84,
+          99,
+          100,
+          103,
+          108,
+          109,
+          111,
+          130,
+          131,
+          132,
+          134,
+          136,
+          137,
+          138,
+          148,
+          157,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          173
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7103718529834164,
+          "rDestroyedDuration": 0.6719110508086404,
+          "rQualityDuration": 0.7111054483649252
+        },
+        "durations": {
+          "median": 5.2166666666666535,
+          "top10Avg": 19.427450980392205,
+          "bestShot": 30.1833333333329
+        },
+        "bestAngle": 100,
+        "bestQuality": 615.8,
+        "bestDamage": 219,
+        "bestDestroyed": 22
+      },
+      {
+        "label": "Mid-Game Weak-Reasonable (Turn 1, prior 85.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 94.15204678362574,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 7
+        },
+        "paretoFrontierCount": 47,
+        "paretoFrontierAngles": [
+          15,
+          22,
+          23,
+          24,
+          25,
+          26,
+          36,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          50,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          75,
+          77,
+          84,
+          85,
+          86,
+          92,
+          94,
+          110,
+          112,
+          114,
+          115,
+          117,
+          118,
+          121,
+          126,
+          140,
+          141,
+          144,
+          145,
+          146,
+          147,
+          150,
+          151,
+          166,
+          167,
+          173
+        ],
+        "correlations": {
+          "rDamageDuration": 0.6215073968060169,
+          "rDestroyedDuration": 0.5234222871263096,
+          "rQualityDuration": 0.572782246176673
+        },
+        "durations": {
+          "median": 5.249999999999987,
+          "top10Avg": 13.577450980392296,
+          "bestShot": 20.283333333333463
+        },
+        "bestAngle": 23,
+        "bestQuality": 495.8,
+        "bestDamage": 189,
+        "bestDestroyed": 16
+      }
+    ],
+    "L04": [
+      {
+        "label": "Initial (Turn 0)",
+        "sampleCount": 341,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 82.11143695014663,
+          "pctChanged100": 90.32258064516128,
+          "needleBands": [
+            {
+              "startAngle": 9.5,
+              "endAngle": 9.5,
+              "width": 0.5,
+              "maxQuality": 220,
+              "angles": [
+                9.5
+              ]
+            },
+            {
+              "startAngle": 10.5,
+              "endAngle": 10.5,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                10.5
+              ]
+            },
+            {
+              "startAngle": 11.5,
+              "endAngle": 11.5,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                11.5
+              ]
+            },
+            {
+              "startAngle": 13,
+              "endAngle": 13,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                13
+              ]
+            },
+            {
+              "startAngle": 14,
+              "endAngle": 14,
+              "width": 0.5,
+              "maxQuality": 191,
+              "angles": [
+                14
+              ]
+            },
+            {
+              "startAngle": 16.5,
+              "endAngle": 16.5,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                16.5
+              ]
+            },
+            {
+              "startAngle": 19,
+              "endAngle": 19,
+              "width": 0.5,
+              "maxQuality": 233,
+              "angles": [
+                19
+              ]
+            },
+            {
+              "startAngle": 26,
+              "endAngle": 26,
+              "width": 0.5,
+              "maxQuality": 212.6,
+              "angles": [
+                26
+              ]
+            },
+            {
+              "startAngle": 30,
+              "endAngle": 30,
+              "width": 0.5,
+              "maxQuality": 190.6,
+              "angles": [
+                30
+              ]
+            },
+            {
+              "startAngle": 31,
+              "endAngle": 31,
+              "width": 0.5,
+              "maxQuality": 183,
+              "angles": [
+                31
+              ]
+            },
+            {
+              "startAngle": 59.5,
+              "endAngle": 59.5,
+              "width": 0.5,
+              "maxQuality": 222.6,
+              "angles": [
+                59.5
+              ]
+            },
+            {
+              "startAngle": 83,
+              "endAngle": 83,
+              "width": 0.5,
+              "maxQuality": 203.6,
+              "angles": [
+                83
+              ]
+            },
+            {
+              "startAngle": 90,
+              "endAngle": 90,
+              "width": 0.5,
+              "maxQuality": 177.6,
+              "angles": [
+                90
+              ]
+            },
+            {
+              "startAngle": 97,
+              "endAngle": 97,
+              "width": 0.5,
+              "maxQuality": 229.6,
+              "angles": [
+                97
+              ]
+            },
+            {
+              "startAngle": 114,
+              "endAngle": 114,
+              "width": 0.5,
+              "maxQuality": 214.6,
+              "angles": [
+                114
+              ]
+            },
+            {
+              "startAngle": 124.5,
+              "endAngle": 124.5,
+              "width": 0.5,
+              "maxQuality": 199.6,
+              "angles": [
+                124.5
+              ]
+            },
+            {
+              "startAngle": 137,
+              "endAngle": 137,
+              "width": 0.5,
+              "maxQuality": 214.6,
+              "angles": [
+                137
+              ]
+            },
+            {
+              "startAngle": 148.5,
+              "endAngle": 148.5,
+              "width": 0.5,
+              "maxQuality": 180.6,
+              "angles": [
+                148.5
+              ]
+            },
+            {
+              "startAngle": 150,
+              "endAngle": 150,
+              "width": 0.5,
+              "maxQuality": 209.6,
+              "angles": [
+                150
+              ]
+            },
+            {
+              "startAngle": 159.5,
+              "endAngle": 159.5,
+              "width": 0.5,
+              "maxQuality": 196.6,
+              "angles": [
+                159.5
+              ]
+            },
+            {
+              "startAngle": 161,
+              "endAngle": 161,
+              "width": 0.5,
+              "maxQuality": 208.6,
+              "angles": [
+                161
+              ]
+            },
+            {
+              "startAngle": 165,
+              "endAngle": 165,
+              "width": 0.5,
+              "maxQuality": 200,
+              "angles": [
+                165
+              ]
+            },
+            {
+              "startAngle": 167,
+              "endAngle": 167,
+              "width": 0.5,
+              "maxQuality": 191,
+              "angles": [
+                167
+              ]
+            },
+            {
+              "startAngle": 168.5,
+              "endAngle": 168.5,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                168.5
+              ]
+            },
+            {
+              "startAngle": 170.5,
+              "endAngle": 170.5,
+              "width": 0.5,
+              "maxQuality": 222,
+              "angles": [
+                170.5
+              ]
+            },
+            {
+              "startAngle": 172,
+              "endAngle": 172,
+              "width": 0.5,
+              "maxQuality": 176,
+              "angles": [
+                172
+              ]
+            }
+          ]
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 17.5,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 0.5,
+          "isolatedSpikesCount": 28
+        },
+        "paretoFrontierCount": 63,
+        "paretoFrontierAngles": [
+          9.5,
+          10.5,
+          15,
+          19,
+          21.5,
+          22,
+          24.5,
+          26.5,
+          30,
+          31,
+          31.5,
+          32.5,
+          33,
+          33.5,
+          35,
+          35.5,
+          42,
+          43,
+          43.5,
+          56.5,
+          57,
+          58,
+          65,
+          66,
+          71,
+          72,
+          74.5,
+          82.5,
+          83,
+          89.5,
+          90,
+          90.5,
+          96.5,
+          97,
+          107.5,
+          108.5,
+          109,
+          109.5,
+          114,
+          114.5,
+          115,
+          116,
+          116.5,
+          122,
+          123,
+          124,
+          124.5,
+          125.5,
+          126,
+          137,
+          139,
+          139.5,
+          146.5,
+          147,
+          147.5,
+          148.5,
+          150,
+          155,
+          155.5,
+          158.5,
+          161,
+          165,
+          175
+        ],
+        "correlations": {
+          "rDamageDuration": 0.5775712478011567,
+          "rDestroyedDuration": 0.4211546326188088,
+          "rQualityDuration": 0.5940087079397836
+        },
+        "durations": {
+          "median": 5.249999999999987,
+          "top10Avg": 9.812254901960841,
+          "bestShot": 13.283333333333573
+        },
+        "bestAngle": 43,
+        "bestQuality": 283.6,
+        "bestDamage": 117,
+        "bestDestroyed": 8
+      },
+      {
+        "label": "Mid-Game Strong (Turn 1, prior 43°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 95.90643274853801,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 4,
+          "isolatedSpikesCount": 13
+        },
+        "paretoFrontierCount": 68,
+        "paretoFrontierAngles": [
+          7,
+          9,
+          10,
+          14,
+          17,
+          20,
+          22,
+          27,
+          28,
+          29,
+          30,
+          32,
+          35,
+          36,
+          39,
+          44,
+          45,
+          46,
+          51,
+          53,
+          56,
+          57,
+          58,
+          59,
+          60,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          73,
+          75,
+          76,
+          80,
+          86,
+          87,
+          92,
+          97,
+          107,
+          109,
+          110,
+          112,
+          114,
+          115,
+          118,
+          119,
+          122,
+          128,
+          129,
+          130,
+          131,
+          133,
+          134,
+          135,
+          136,
+          137,
+          140,
+          144,
+          146,
+          149,
+          150,
+          157,
+          158,
+          167,
+          169,
+          172
+        ],
+        "correlations": {
+          "rDamageDuration": 0.8231422776973789,
+          "rDestroyedDuration": 0.7628793519270358,
+          "rQualityDuration": 0.8271497078921256
+        },
+        "durations": {
+          "median": 6.5333333333333155,
+          "top10Avg": 20.98333333333342,
+          "bestShot": 26.433333333333113
+        },
+        "bestAngle": 14,
+        "bestQuality": 423.2,
+        "bestDamage": 133,
+        "bestDestroyed": 12
+      },
+      {
+        "label": "Mid-Game Competent (Turn 1, prior 119.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 90.05847953216374,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 19,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 13
+        },
+        "paretoFrontierCount": 50,
+        "paretoFrontierAngles": [
+          12,
+          19,
+          21,
+          25,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          43,
+          57,
+          58,
+          60,
+          61,
+          63,
+          64,
+          65,
+          66,
+          68,
+          69,
+          71,
+          80,
+          84,
+          93,
+          94,
+          96,
+          100,
+          102,
+          107,
+          108,
+          110,
+          127,
+          128,
+          129,
+          130,
+          133,
+          136,
+          146,
+          147,
+          148,
+          152,
+          153,
+          155,
+          157,
+          159,
+          169,
+          170,
+          171,
+          173
+        ],
+        "correlations": {
+          "rDamageDuration": 0.7272532216547033,
+          "rDestroyedDuration": 0.673164664716283,
+          "rQualityDuration": 0.7457551329382699
+        },
+        "durations": {
+          "median": 5.266666666666653,
+          "top10Avg": 15.816666666666716,
+          "bestShot": 22.233333333333352
+        },
+        "bestAngle": 60,
+        "bestQuality": 494.8,
+        "bestDamage": 200,
+        "bestDestroyed": 15
+      },
+      {
+        "label": "Mid-Game Weak-Reasonable (Turn 1, prior 164°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 85.38011695906432,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 8
+        },
+        "paretoFrontierCount": 38,
+        "paretoFrontierAngles": [
+          15,
+          24,
+          25,
+          31,
+          36,
+          39,
+          41,
+          42,
+          44,
+          70,
+          71,
+          75,
+          77,
+          78,
+          81,
+          82,
+          83,
+          87,
+          98,
+          102,
+          103,
+          104,
+          106,
+          107,
+          108,
+          109,
+          110,
+          111,
+          125,
+          130,
+          142,
+          143,
+          152,
+          153,
+          156,
+          157,
+          162,
+          167
+        ],
+        "correlations": {
+          "rDamageDuration": 0.724483160893555,
+          "rDestroyedDuration": 0.5750888990578191,
+          "rQualityDuration": 0.6805628047439962
+        },
+        "durations": {
+          "median": 5.016666666666654,
+          "top10Avg": 12.521568627451174,
+          "bestShot": 14.666666666666975
+        },
+        "bestAngle": 142,
+        "bestQuality": 421.8,
+        "bestDamage": 157,
+        "bestDestroyed": 13
+      }
+    ],
+    "L05": [
+      {
+        "label": "Initial (Turn 0)",
+        "sampleCount": 341,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 86.51026392961877,
+          "pctChanged100": 91.20234604105572,
+          "needleBands": [
+            {
+              "startAngle": 6,
+              "endAngle": 6,
+              "width": 0.5,
+              "maxQuality": 183,
+              "angles": [
+                6
+              ]
+            },
+            {
+              "startAngle": 7.5,
+              "endAngle": 7.5,
+              "width": 0.5,
+              "maxQuality": 255,
+              "angles": [
+                7.5
+              ]
+            },
+            {
+              "startAngle": 9,
+              "endAngle": 9,
+              "width": 0.5,
+              "maxQuality": 268.2,
+              "angles": [
+                9
+              ]
+            },
+            {
+              "startAngle": 10.5,
+              "endAngle": 10.5,
+              "width": 0.5,
+              "maxQuality": 280.2,
+              "angles": [
+                10.5
+              ]
+            },
+            {
+              "startAngle": 11.5,
+              "endAngle": 11.5,
+              "width": 0.5,
+              "maxQuality": 183,
+              "angles": [
+                11.5
+              ]
+            },
+            {
+              "startAngle": 19,
+              "endAngle": 19,
+              "width": 0.5,
+              "maxQuality": 207,
+              "angles": [
+                19
+              ]
+            },
+            {
+              "startAngle": 36,
+              "endAngle": 36,
+              "width": 0.5,
+              "maxQuality": 223.2,
+              "angles": [
+                36
+              ]
+            },
+            {
+              "startAngle": 48.5,
+              "endAngle": 48.5,
+              "width": 0.5,
+              "maxQuality": 191,
+              "angles": [
+                48.5
+              ]
+            },
+            {
+              "startAngle": 49.5,
+              "endAngle": 49.5,
+              "width": 0.5,
+              "maxQuality": 191.2,
+              "angles": [
+                49.5
+              ]
+            },
+            {
+              "startAngle": 57.5,
+              "endAngle": 57.5,
+              "width": 0.5,
+              "maxQuality": 188.2,
+              "angles": [
+                57.5
+              ]
+            },
+            {
+              "startAngle": 105,
+              "endAngle": 105,
+              "width": 0.5,
+              "maxQuality": 193.2,
+              "angles": [
+                105
+              ]
+            },
+            {
+              "startAngle": 122.5,
+              "endAngle": 122.5,
+              "width": 0.5,
+              "maxQuality": 204.2,
+              "angles": [
+                122.5
+              ]
+            },
+            {
+              "startAngle": 128.5,
+              "endAngle": 128.5,
+              "width": 0.5,
+              "maxQuality": 210.2,
+              "angles": [
+                128.5
+              ]
+            },
+            {
+              "startAngle": 148,
+              "endAngle": 148,
+              "width": 0.5,
+              "maxQuality": 182.2,
+              "angles": [
+                148
+              ]
+            },
+            {
+              "startAngle": 149.5,
+              "endAngle": 149.5,
+              "width": 0.5,
+              "maxQuality": 280,
+              "angles": [
+                149.5
+              ]
+            },
+            {
+              "startAngle": 152,
+              "endAngle": 152,
+              "width": 0.5,
+              "maxQuality": 190,
+              "angles": [
+                152
+              ]
+            },
+            {
+              "startAngle": 155,
+              "endAngle": 155,
+              "width": 0.5,
+              "maxQuality": 215.2,
+              "angles": [
+                155
+              ]
+            },
+            {
+              "startAngle": 156.5,
+              "endAngle": 156.5,
+              "width": 0.5,
+              "maxQuality": 210.2,
+              "angles": [
+                156.5
+              ]
+            },
+            {
+              "startAngle": 158,
+              "endAngle": 158,
+              "width": 0.5,
+              "maxQuality": 181.2,
+              "angles": [
+                158
+              ]
+            },
+            {
+              "startAngle": 159,
+              "endAngle": 159,
+              "width": 0.5,
+              "maxQuality": 191.2,
+              "angles": [
+                159
+              ]
+            },
+            {
+              "startAngle": 160,
+              "endAngle": 160,
+              "width": 0.5,
+              "maxQuality": 212,
+              "angles": [
+                160
+              ]
+            },
+            {
+              "startAngle": 161,
+              "endAngle": 161,
+              "width": 0.5,
+              "maxQuality": 205,
+              "angles": [
+                161
+              ]
+            },
+            {
+              "startAngle": 164.5,
+              "endAngle": 164.5,
+              "width": 0.5,
+              "maxQuality": 312,
+              "angles": [
+                164.5
+              ]
+            },
+            {
+              "startAngle": 167,
+              "endAngle": 167,
+              "width": 0.5,
+              "maxQuality": 192.2,
+              "angles": [
+                167
+              ]
+            },
+            {
+              "startAngle": 169.5,
+              "endAngle": 169.5,
+              "width": 0.5,
+              "maxQuality": 248.2,
+              "angles": [
+                169.5
+              ]
+            },
+            {
+              "startAngle": 171,
+              "endAngle": 171,
+              "width": 0.5,
+              "maxQuality": 259.2,
+              "angles": [
+                171
+              ]
+            },
+            {
+              "startAngle": 172.5,
+              "endAngle": 172.5,
+              "width": 0.5,
+              "maxQuality": 242,
+              "angles": [
+                172.5
+              ]
+            }
+          ]
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35.5,
+          "maxRobustContiguousWidthDeg": 0.5,
+          "isolatedSpikesCount": 37
+        },
+        "paretoFrontierCount": 45,
+        "paretoFrontierAngles": [
+          10.5,
+          15.5,
+          20,
+          20.5,
+          28.5,
+          29,
+          30.5,
+          36,
+          43.5,
+          44.5,
+          46,
+          46.5,
+          48,
+          49.5,
+          50,
+          51,
+          51.5,
+          55.5,
+          78,
+          78.5,
+          89.5,
+          90,
+          90.5,
+          97,
+          98,
+          101.5,
+          102,
+          103.5,
+          105,
+          119.5,
+          121,
+          124.5,
+          128.5,
+          129.5,
+          130,
+          130.5,
+          131.5,
+          133,
+          133.5,
+          138,
+          144,
+          150.5,
+          151,
+          164.5,
+          168
+        ],
+        "correlations": {
+          "rDamageDuration": 0.5810020681049171,
+          "rDestroyedDuration": 0.4762574369937111,
+          "rQualityDuration": 0.6115380896647628
+        },
+        "durations": {
+          "median": 5.33333333333332,
+          "top10Avg": 12.976960784313803,
+          "bestShot": 34.9499999999993
+        },
+        "bestAngle": 164.5,
+        "bestQuality": 312,
+        "bestDamage": 119,
+        "bestDestroyed": 7
+      },
+      {
+        "label": "Mid-Game Strong (Turn 1, prior 164.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 91.81286549707602,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 35,
+          "maxRobustContiguousWidthDeg": 2,
+          "isolatedSpikesCount": 10
+        },
+        "paretoFrontierCount": 43,
+        "paretoFrontierAngles": [
+          6,
+          7,
+          12,
+          17,
+          18,
+          19,
+          20,
+          21,
+          25,
+          28,
+          30,
+          39,
+          50,
+          52,
+          54,
+          56,
+          62,
+          88,
+          89,
+          90,
+          91,
+          93,
+          94,
+          100,
+          103,
+          104,
+          106,
+          107,
+          108,
+          116,
+          121,
+          128,
+          129,
+          131,
+          137,
+          139,
+          143,
+          154,
+          158,
+          160,
+          162,
+          165,
+          171
+        ],
+        "correlations": {
+          "rDamageDuration": 0.735350771652781,
+          "rDestroyedDuration": 0.7519080330282485,
+          "rQualityDuration": 0.7798617611894171
+        },
+        "durations": {
+          "median": 5.7666666666666515,
+          "top10Avg": 16.595098039215742,
+          "bestShot": 12.783333333333548
+        },
+        "bestAngle": 93,
+        "bestQuality": 293.2,
+        "bestDamage": 107,
+        "bestDestroyed": 9
+      },
+      {
+        "label": "Mid-Game Competent (Turn 1, prior 171.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 85.38011695906432,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 37,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 12
+        },
+        "paretoFrontierCount": 37,
+        "paretoFrontierAngles": [
+          10,
+          16,
+          34,
+          41,
+          42,
+          48,
+          49,
+          51,
+          60,
+          63,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          83,
+          90,
+          98,
+          100,
+          103,
+          111,
+          112,
+          123,
+          124,
+          131,
+          132,
+          133,
+          134,
+          135,
+          138,
+          145,
+          146,
+          147,
+          148,
+          161,
+          164
+        ],
+        "correlations": {
+          "rDamageDuration": 0.775666317019356,
+          "rDestroyedDuration": 0.6790476794306213,
+          "rQualityDuration": 0.767337476208533
+        },
+        "durations": {
+          "median": 5.13333333333332,
+          "top10Avg": 13.170588235294192,
+          "bestShot": 11.000000000000126
+        },
+        "bestAngle": 16,
+        "bestQuality": 268.2,
+        "bestDamage": 97,
+        "bestDestroyed": 8
+      },
+      {
+        "label": "Mid-Game Weak-Reasonable (Turn 1, prior 76.5°)",
+        "sampleCount": 171,
+        "sensitivity": {
+          "pctChanged025": 0,
+          "pctChanged050": 0,
+          "pctChanged100": 88.30409356725146,
+          "needleBands": []
+        },
+        "bandwidth": {
+          "top10DmgWidthDeg": 18,
+          "top20QWidthDeg": 36,
+          "maxRobustContiguousWidthDeg": 1,
+          "isolatedSpikesCount": 9
+        },
+        "paretoFrontierCount": 52,
+        "paretoFrontierAngles": [
+          7,
+          13,
+          16,
+          25,
+          26,
+          30,
+          31,
+          32,
+          38,
+          39,
+          40,
+          41,
+          42,
+          46,
+          47,
+          48,
+          54,
+          57,
+          60,
+          63,
+          70,
+          76,
+          78,
+          79,
+          80,
+          82,
+          84,
+          85,
+          87,
+          91,
+          97,
+          105,
+          109,
+          110,
+          112,
+          113,
+          114,
+          117,
+          123,
+          125,
+          126,
+          127,
+          134,
+          142,
+          144,
+          145,
+          149,
+          151,
+          157,
+          165,
+          166,
+          169
+        ],
+        "correlations": {
+          "rDamageDuration": 0.6223114082744976,
+          "rDestroyedDuration": 0.49689617716033746,
+          "rQualityDuration": 0.6531849273376261
+        },
+        "durations": {
+          "median": 5.3833333333333195,
+          "top10Avg": 12.280392156862861,
+          "bestShot": 16.25000000000036
+        },
+        "bestAngle": 48,
+        "bestQuality": 385.4,
+        "bestDamage": 177,
+        "bestDestroyed": 11
+      }
+    ]
+  }
+}
